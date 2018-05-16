@@ -1,0 +1,10 @@
+{
+  "user": "..",
+  "password": "..",
+  "server": "hostName\\instanceName",
+  "database": "databaseName",
+
+  "options": {
+    "encrypt": false
+  }
+}
