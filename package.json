@@ -1,0 +1,23 @@
+{
+  "name": "zc-notify",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Knight0fNever/ZC-Notify.git"
+  },
+  "author": "Josh Conner <josh@joshconner.me> (http://www.joshconner.me)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Knight0fNever/ZC-Notify/issues"
+  },
+  "homepage": "https://github.com/Knight0fNever/ZC-Notify#readme",
+  "dependencies": {
+    "enum": "^2.5.0",
+    "mssql": "^4.1.0"
+  }
+}
