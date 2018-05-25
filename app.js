@@ -63,6 +63,8 @@ function getNewTenders() {
     let newTenderID = result[0];
     let oldTenderID = result[1];
 
+    let tenders = [];
+
     if (newTenderID > oldTenderID) {
       for (let i = oldTenderID + 1; i <= newTenderID; i++) {
         tenders.push(db.getTenderEntry(i));
