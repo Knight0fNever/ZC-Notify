@@ -1,14 +1,10 @@
 const sql = require("mssql");
 const fs = require("fs");
-let myExports = {};
 
 const config = JSON.parse(fs.readFileSync("./dbconfig.json", "utf8"));
 
 // Return promise that resolves into latest tenderID. 0 for local, 1 for AWs
-let getLatestTender = (myExports.getLatestTender = async function getLatestTender(
-  storeId,
-  location
-) {
+async function getLatestTender(storeId, location) {
   let query;
 
   if (location == 1) {
@@ -35,9 +31,9 @@ let getLatestTender = (myExports.getLatestTender = async function getLatestTende
   } finally {
     pool.close();
   }
-});
+}
 
-let getTenderEntry = (myExports.getTenderEntry = async function(tenderEntryID) {
+async function getTenderEntry(tenderEntryID) {
   let query =
     "SELECT TenderEntry.ID as 'tenderID', TenderEntry.StoreID, TenderEntry.TransactionNumber, TenderEntry.[Description], TenderEntry.Amount FROM TenderEntry WHERE TenderEntry.ID = " +
     tenderEntryID;
@@ -50,17 +46,20 @@ let getTenderEntry = (myExports.getTenderEntry = async function(tenderEntryID) {
     await pool.connect();
     let result = await pool.request().query(query);
 
-    return { success: result };
+    return await { success: result };
   } catch (err) {
     console.log("Query Error: ", err);
-    return { err: err };
+    return await { err: err };
   } finally {
     pool.close();
   }
-});
+}
 
 sql.on("error", err => {
   console.log("Server Error:", err);
 });
 
-module.exports = myExports;
+module.exports = {
+  getLatestTender: getLatestTender,
+  getTenderEntry: getTenderEntry
+};

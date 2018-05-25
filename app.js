@@ -53,34 +53,29 @@ function start() {
   }
 
   // 2. Check Tender table for new Tender
-  let tenderIds229 = [db.getLatestTender(229, 0), db.getLatestTender(229, 1)];
-  let promises = Promise.all(tenderIds229);
+  let newTenders = getNewTenders();
+}
 
-  promises.then(results => {
-    let oldTenderID = results[1].success.recordset[0].tenderID;
-    let newTenderID = results[0].success.recordset[0].tenderID;
+// test();
+
+function getNewTenders() {
+  getLatestTenders().then(result => {
+    let newTenderID = result[0];
+    let oldTenderID = result[1];
 
     if (newTenderID > oldTenderID) {
       for (let i = oldTenderID + 1; i <= newTenderID; i++) {
-        // TODO: Analyze tenderEntry.
-        db.getTenderEntry(i).then(data => {
-          if (data.success.recordset[0].Amount >= 2000.0) {
-            console.log(true);
-          }
-        });
+        tenders.push(db.getTenderEntry(i));
       }
     }
   });
 }
 
-test();
-
-function test() {
-  db.getTenderEntry(36484).then(data => {
-    if (data.success.recordset[0].Amount >= 60.0) {
-      console.log(true);
-    } else {
-      console.log(false);
-    }
-  });
+async function getLatestTenders() {
+  let localResult = await db.getLatestTender(229, 0);
+  let cachedResult = await db.getLatestTender(229, 1);
+  return [
+    localResult.success.recordset[0].tenderID,
+    cachedResult.success.recordset[0].tenderID
+  ];
 }
