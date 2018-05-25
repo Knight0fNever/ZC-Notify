@@ -1,23 +1,66 @@
-const sql = require('mssql');
-const fs = require('fs');
+const sql = require("mssql");
+const fs = require("fs");
 let myExports = {};
 
-const config = JSON.parse(fs.readFileSync('./dbconfig.json', 'utf8'));
+const config = JSON.parse(fs.readFileSync("./dbconfig.json", "utf8"));
 
-let query = (myExports.query = async function query(query) {
+// Return promise that resolves into latest tenderID. 0 for local, 1 for AWs
+let getLatestTender = (myExports.getLatestTender = async function getLatestTender(
+  storeId,
+  location
+) {
+  let query;
+
+  if (location == 1) {
+    query =
+      "SELECT MAX(lastCheckedTenderID) as 'tenderID' FROM tenderEntries WHERE tenderEntries.storeID = " +
+      storeId;
+  } else {
+    query =
+      "SELECT MAX(id) as 'tenderID' FROM TenderEntry WHERE tenderEntry.storeID = " +
+      storeId;
+  }
+  const pool = new sql.ConnectionPool(config[location]);
+  pool.on("error", err => {
+    console.log("SQL Error: ", err);
+  });
+
   try {
-    let pool = await sql.connect(config);
+    await pool.connect();
     let result = await pool.request().query(query);
-
-    pool.close();
-    return result;
+    return { success: result };
   } catch (err) {
-    console.log('Query Error:', err);
+    console.log("Query Error:", err);
+    return { err: err };
+  } finally {
+    pool.close();
   }
 });
 
-sql.on('error', err => {
-  console.log('Server Error:', err);
+let getTenderEntry = (myExports.getTenderEntry = async function(tenderEntryID) {
+  let query =
+    "SELECT TenderEntry.ID as 'tenderID', TenderEntry.StoreID, TenderEntry.TransactionNumber, TenderEntry.[Description], TenderEntry.Amount FROM TenderEntry WHERE TenderEntry.ID = " +
+    tenderEntryID;
+  const pool = new sql.ConnectionPool(config[0]);
+  pool.on("error", err => {
+    console.log("SQL Error: ", err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+
+    return { success: result };
+  } catch (err) {
+    console.log("Query Error: ", err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+});
+
+sql.on("error", err => {
+  console.log("Server Error:", err);
 });
 
 module.exports = myExports;
