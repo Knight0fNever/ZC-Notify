@@ -1,11 +1,11 @@
 class Address {
-  constructor() {
-    this.address = '';
-    this.address2 = '';
-    this.city = '';
-    this.state = '';
-    this.zip = '';
-    this.country = '';
+  constructor(address, address2, city, state, zip, country) {
+    this.address = address;
+    this.address2 = address2;
+    this.city = city;
+    this.state = state;
+    this.zip = zip;
+    this.country = country;
   }
 
   getAddress() {

@@ -1,10 +1,10 @@
-const Customer = require('./customer');
+const Customer = require("./customer");
 class Sale {
   constructor(transactonType, transNumber) {
-    this.transactionType = '';
+    this.transactionType = "";
     this.transNumber = transNumber;
     this.storeID = 0;
-    this.storeName = '';
+    this.storeName = "";
     this.transactionDate = new Date();
     this.transactionTime = new Date();
     this.total = 0.0;
@@ -14,9 +14,8 @@ class Sale {
     this.customerID = 0;
     this.tenders = [];
     this.transactionEntries = [];
-    this.comment = '';
-    this.isRecalledOrder = false;
-    this.recalledOrderID = 0;
+    this.comment = "";
+    this.referenceNumber = "";
   }
 
   getTransactionType() {
@@ -75,12 +74,8 @@ class Sale {
     return this.comment;
   }
 
-  getIsRecalledOrder() {
-    return this.isRecalledOrder;
-  }
-
-  getRecalledOrderID() {
-    return this.recalledOrderID;
+  getReferenceNumber() {
+    return this.referenceNumber;
   }
 }
 

@@ -1,4 +1,4 @@
-const Sale = require('./sale');
+const Sale = require("./sale");
 
 class Layaway extends Sale {
   constructor() {
@@ -8,6 +8,8 @@ class Layaway extends Sale {
     this.remainingBalance = 0.0;
     this.orderEntries = [];
     this.orderHistoryID = 0;
+    this.isRecalledOrder = false;
+    this.recalledOrderID = 0;
   }
 
   getLayawayStatus() {
@@ -32,6 +34,14 @@ class Layaway extends Sale {
 
   getOrderHistoryID() {
     return this.orderHistoryID;
+  }
+
+  getIsRecalledOrder() {
+    return this.isRecalledOrder;
+  }
+
+  getRecalledOrderID() {
+    return this.recalledOrderID;
   }
 }
 

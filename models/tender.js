@@ -1,10 +1,11 @@
 class Tender {
   constructor() {
-    this.tenderType = '';
+    this.tenderType = "";
     this.tenderAmount = 0.0;
     this.tenderID = 0;
     this.orderHistoryID = 0;
     this.transNumber = 0;
+    this.storeID = 0;
   }
 
   getTenderType() {
@@ -25,6 +26,10 @@ class Tender {
 
   getTransNumber() {
     return this.transNumber;
+  }
+
+  getStoreID() {
+    return this.storeID;
   }
 }
 

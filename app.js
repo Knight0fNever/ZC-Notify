@@ -7,6 +7,7 @@ const TransactionEntry = require("./models/transactionEntry");
 const Layaway = require("./models/layaway");
 const Email = require("./models/email");
 const File = require("./controllers/file");
+const Tenders = require("./controllers/tenders");
 
 // ---- STEPS ----
 // 1. Check for dbconfig.json file.
@@ -28,56 +29,71 @@ const File = require("./controllers/file");
 // let minutes = 0.5;
 // let the_interval = minutes * 60 * 1000;
 // setInterval(function() {
-//   console.log('I am doing my 5 minutes check');
-//   // do your stuff here
+//   test();
 // }, the_interval);
 
-let saleEmailQ = [];
-let newLayawayEmailQ = [];
-let paymentEmailQ = [];
-let gnSaleEmailQ = [];
-let refundEmailQ = [];
+let saleEmailQueue = [];
+let newLayawayEmailQueue = [];
+let paymentEmailQueue = [];
+let gnSaleEmailQueue = [];
+let refundEmailQueue = [];
 
-function start() {
-  // 0. Check for dbconfig.json file.
-  if (fs.existsSync("./dbconfig.json")) {
-    if (fs.readFileSync("./dbconfig.json", "utf8") == "") {
-      console.error("Database configuration file is corrupt.");
-      process.exit(1);
-    } else {
-      start();
-    }
-  } else {
-    console.error("Database Configuration does not exist.");
-    process.exit(1);
-  }
+// 1. Check for dbconfig.json file.
+// if (fs.existsSync("./dbconfig.json")) {
+//   if (fs.readFileSync("./dbconfig.json", "utf8") == "") {
+//     console.error("Database configuration file is corrupt.");
+//     process.exit(1);
+//   } else {
+//     start();
+//   }
+// } else {
+//   console.error("Database Configuration does not exist.");
+//   process.exit(1);
+// }
 
+async function start() {
   // 2. Check Tender table for new Tender
-  let newTenders = getNewTenders();
+  let newTenders = await Tenders.getNewTenders();
+  if (newTenders.length != 0) {
+    console.log("correct");
+  } else {
+    end();
+  }
 }
 
-// test();
+function end() {}
 
-function getNewTenders() {
-  getLatestTenders().then(result => {
-    let newTenderID = result[0];
-    let oldTenderID = result[1];
+test();
 
-    let tenders = [];
+async function test() {
+  // let trans = await db.getTransaction(31671, 229);
 
-    if (newTenderID > oldTenderID) {
-      for (let i = oldTenderID + 1; i <= newTenderID; i++) {
-        tenders.push(db.getTenderEntry(i));
-      }
-    }
-  });
-}
+  let sale = new Sale("Sale", 31671);
+  let rawSale = await db.getTransaction(31671, 229);
 
-async function getLatestTenders() {
-  let localResult = await db.getLatestTender(229, 0);
-  let cachedResult = await db.getLatestTender(229, 1);
-  return [
-    localResult.success.recordset[0].tenderID,
-    cachedResult.success.recordset[0].tenderID
-  ];
+  // console.log(rawSale);
+
+  sale.storeID = 229;
+  sale.storeName = rawSale.Store;
+  sale.transactionDate = rawSale.Time;
+  sale.total = rawSale.Total;
+  sale.salesTax = rawSale.SalesTax;
+  // TODO: Generate Lot
+  // sale.totalLot = db.calculateLot();
+  sale.customer = await db.getCustomer(rawSale.CustomerID);
+  sale.customerID = rawSale.CustomerID;
+  // TODO: Get Tenders
+  // sale.tenders = await db.getTenders(
+  //   tenderEntry.getTransNumber(),
+  //   tenderEntry.getStoreID()
+  // );
+  // TODO: Get Transaction Entries
+  // sale.transactionEntries = await db.getTransactionEntries(
+  //   rawSale.getTransNumber,
+  //   rawSale.getStoreID
+  // );
+  sale.comment = rawSale.Comment;
+  sale.referenceNumber = rawSale.ReferenceNumber;
+
+  console.log(sale);
 }
