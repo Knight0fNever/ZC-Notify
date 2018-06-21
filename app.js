@@ -1,13 +1,17 @@
 const fs = require("fs");
 
+const storeConfig = JSON.parse(fs.readFileSync("./storeConfig.json", "utf8"));
+
 const db = require("./controllers/db");
-var Sale = require("./models/sale");
+let Sale = require("./models/sale");
 const Tender = require("./models/tender");
 const TransactionEntry = require("./models/transactionEntry");
 const Layaway = require("./models/layaway");
 const Email = require("./models/email");
 const File = require("./controllers/file");
 const Tenders = require("./controllers/tenders");
+
+let date = new Date();
 
 // ---- STEPS ----
 // 1. Check for dbconfig.json file.
@@ -30,6 +34,7 @@ const Tenders = require("./controllers/tenders");
 // let the_interval = minutes * 60 * 1000;
 // setInterval(function() {
 //   test();
+//   date = Date.now();
 // }, the_interval);
 
 let saleEmailQueue = [];
@@ -38,62 +43,45 @@ let paymentEmailQueue = [];
 let gnSaleEmailQueue = [];
 let refundEmailQueue = [];
 
-// 1. Check for dbconfig.json file.
-// if (fs.existsSync("./dbconfig.json")) {
-//   if (fs.readFileSync("./dbconfig.json", "utf8") == "") {
-//     console.error("Database configuration file is corrupt.");
-//     process.exit(1);
-//   } else {
-//     start();
-//   }
-// } else {
-//   console.error("Database Configuration does not exist.");
-//   process.exit(1);
-// }
+// 1. Check for lastCheckTender entry in AWS DB.
+// pre();
+start();
 
 async function start() {
-  // 2. Check Tender table for new Tender
-  let newTenders = await Tenders.getNewTenders();
-  if (newTenders.length != 0) {
-    console.log("correct");
-  } else {
-    end();
+  let newTenders = [];
+  for (let i = 0; i < storeConfig.length; i++) {
+    let newTender = await checkNewTenders(storeConfig[i].storeID);
+    if (!(Object.keys(newTender).length === 0)) {
+      newTenders.push(newTender);
+    }
   }
+  console.log(newTenders);
+}
+
+async function checkNewTenders(storeID) {
+  // 2. Check Tender table for new Tender
+  let newMaxTender = await db.getLatestTender(storeID, 0);
+  let oldMaxTender = await db.getLatestTender(storeID, 1);
+  let result = {};
+  if (newMaxTender > oldMaxTender) {
+    result = await db.getAllNewTenders(storeID, oldMaxTender);
+    result.storeID = storeID;
+  }
+  return result;
 }
 
 function end() {}
 
+async function pre() {
+  for (let i = 0; i < storeConfig.length; i++) {
+    let latestTender = await db.getLatestTender(storeConfig[i].storeID, 1);
+    if (latestTender == null) {
+      let updatedTender = await db.getLatestTender(storeConfig[i].storeID, 0);
+      await db.updateLatestTender(storeConfig[i].storeID, updatedTender);
+    }
+  }
+}
+
 test();
 
-async function test() {
-  // let trans = await db.getTransaction(31671, 229);
-
-  let sale = new Sale("Sale", 31671);
-  let rawSale = await db.getTransaction(31671, 229);
-
-  // console.log(rawSale);
-
-  sale.storeID = 229;
-  sale.storeName = rawSale.Store;
-  sale.transactionDate = rawSale.Time;
-  sale.total = rawSale.Total;
-  sale.salesTax = rawSale.SalesTax;
-  // TODO: Generate Lot
-  // sale.totalLot = db.calculateLot();
-  sale.customer = await db.getCustomer(rawSale.CustomerID);
-  sale.customerID = rawSale.CustomerID;
-  // TODO: Get Tenders
-  // sale.tenders = await db.getTenders(
-  //   tenderEntry.getTransNumber(),
-  //   tenderEntry.getStoreID()
-  // );
-  // TODO: Get Transaction Entries
-  // sale.transactionEntries = await db.getTransactionEntries(
-  //   rawSale.getTransNumber,
-  //   rawSale.getStoreID
-  // );
-  sale.comment = rawSale.Comment;
-  sale.referenceNumber = rawSale.ReferenceNumber;
-
-  console.log(sale);
-}
+async function test() {}

@@ -1,12 +1,11 @@
 const Customer = require("./customer");
 class Sale {
-  constructor(transactonType, transNumber) {
-    this.transactionType = "";
+  constructor(transactionType, transNumber) {
+    this.transactionType = transactionType;
     this.transNumber = transNumber;
     this.storeID = 0;
     this.storeName = "";
     this.transactionDate = new Date();
-    this.transactionTime = new Date();
     this.total = 0.0;
     this.salesTax = 0.0;
     this.totalLot = 0.0;
@@ -16,6 +15,11 @@ class Sale {
     this.transactionEntries = [];
     this.comment = "";
     this.referenceNumber = "";
+    this.recallID = 0;
+  }
+
+  getRecallID() {
+    return this.recallID;
   }
 
   getTransactionType() {
@@ -36,10 +40,6 @@ class Sale {
 
   getTransactionDate() {
     return this.transactionDate;
-  }
-
-  getTransactionTime() {
-    return this.transactionTime;
   }
 
   getTotal() {
