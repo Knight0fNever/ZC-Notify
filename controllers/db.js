@@ -328,7 +328,7 @@ async function getAllNewTenders(storeID, startTenderID) {
     await pool.connect();
     let result = await pool.request().query(query);
     // console.log(result.recordset[0]);
-    return result.recordset[0];
+    return result.recordset;
   } catch (err) {
     console.log("Query Error: ", err);
     return { err: err };

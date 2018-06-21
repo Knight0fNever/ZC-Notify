@@ -48,24 +48,28 @@ let refundEmailQueue = [];
 start();
 
 async function start() {
+  // 2. Check Tender table for new Tender
   let newTenders = [];
   for (let i = 0; i < storeConfig.length; i++) {
     let newTender = await checkNewTenders(storeConfig[i].storeID);
     if (!(Object.keys(newTender).length === 0)) {
-      newTenders.push(newTender);
+      newTender.forEach(tender => {
+        newTenders.push(tender);
+      });
     }
   }
-  console.log(newTenders);
 }
 
 async function checkNewTenders(storeID) {
-  // 2. Check Tender table for new Tender
   let newMaxTender = await db.getLatestTender(storeID, 0);
   let oldMaxTender = await db.getLatestTender(storeID, 1);
   let result = {};
   if (newMaxTender > oldMaxTender) {
     result = await db.getAllNewTenders(storeID, oldMaxTender);
-    result.storeID = storeID;
+    result.forEach(tender => {
+      tender.storeID = storeID;
+    });
+    // console.log(result);
   }
   return result;
 }
