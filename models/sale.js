@@ -1,9 +1,9 @@
 const Customer = require("./customer");
 class Sale {
-  constructor(transactionType, transNumber) {
+  constructor(transactionType, transNumber, storeID) {
     this.transactionType = transactionType;
     this.transNumber = transNumber;
-    this.storeID = 0;
+    this.storeID = storeID;
     this.storeName = "";
     this.transactionDate = new Date();
     this.total = 0.0;

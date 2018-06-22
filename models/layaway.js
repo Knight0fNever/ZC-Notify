@@ -1,7 +1,8 @@
 const Sale = require("./sale");
 
 class Layaway extends Sale {
-  constructor() {
+  constructor(transactionType, orderNumber, storeID) {
+    super(transactionType, orderNumber, storeID);
     this.layawayStatus = 0;
     this.previousDeposit = 0.0;
     this.currentDeposit = 0.0;

@@ -40,14 +40,15 @@ let date = new Date();
 let saleEmailQueue = [];
 let newLayawayEmailQueue = [];
 let paymentEmailQueue = [];
+let refundPaymentQueue = [];
 let gnSaleEmailQueue = [];
 let refundEmailQueue = [];
 
 // 1. Check for lastCheckTender entry in AWS DB.
 // pre();
-start();
+startCheckTenders();
 
-async function start() {
+async function startCheckTenders() {
   // 2. Check Tender table for new Tender
   let newTenders = [];
   for (let i = 0; i < storeConfig.length; i++) {
@@ -57,7 +58,64 @@ async function start() {
         newTenders.push(tender);
       });
     }
+    await db.updateLatestTender(
+      storeConfig[i].storeID,
+      await db.getLatestTender(storeConfig[i].storeID, 0)
+    );
   }
+
+  for (let i = 0; i < newTenders.length; i++) {
+    newTenders[i] = await db.getTenderEntry(
+      newTenders[i].ID,
+      newTenders[i].storeID
+    );
+  }
+
+  // console.log(newTenders);
+
+  // 3. Check tender type of each Tender.
+  for (let i = 0; i < newTenders.length; i++) {
+    let sale;
+    if (newTenders[i].TransactionNumber != 0 && newTenders[i].Amount > 2000) {
+      sale = await db.getTransaction(
+        "Sale",
+        newTenders[i].TransactionNumber,
+        newTenders[i].StoreID
+      );
+      // console.log(sale);
+      saleEmailQueue.push(sale);
+    } else if (
+      newTenders[i].TransactionNumber != 0 &&
+      newTenders[i].Amount < 0
+    ) {
+      sale = await db.getTransaction(
+        "Refund",
+        newTenders[i].TransactionNumber,
+        newTenders[i].StoreID
+      );
+      refundEmailQueue.push(sale);
+    } else if (
+      newTenders[i].TransactionNumber == 0 &&
+      newTenders[i].Amount < 0
+    ) {
+      // Layaway Payment Refund
+      let orderID = await db.getOrderID(newTenders[i].OrderHistoryID);
+      let layaway = await db.getLayaway(orderID, newTenders[i].StoreID);
+      refundPaymentQueue.push(layaway);
+      // console.log(layaway);
+    } else if (newTenders[i].TransactionNumber == 0) {
+      //Layaway Payment
+      let orderID = await db.getOrderID(newTenders[i].OrderHistoryID);
+      let layaway = await db.getLayaway(orderID, newTenders[i].StoreID);
+      if (layaway.Closed == false) {
+        paymentEmailQueue.push(layaway);
+      }
+    }
+  }
+  console.log("Sales: ", saleEmailQueue);
+  console.log("Refunds: ", refundEmailQueue);
+  console.log("Payments: ", paymentEmailQueue);
+  console.log("Payment Refunds: ", refundPaymentQueue);
 }
 
 async function checkNewTenders(storeID) {
@@ -81,11 +139,13 @@ async function pre() {
     let latestTender = await db.getLatestTender(storeConfig[i].storeID, 1);
     if (latestTender == null) {
       let updatedTender = await db.getLatestTender(storeConfig[i].storeID, 0);
-      await db.updateLatestTender(storeConfig[i].storeID, updatedTender);
+      await db.insertLatestTender(storeConfig[i].storeID, updatedTender);
     }
   }
 }
 
-test();
+// test();
 
-async function test() {}
+async function test() {
+  console.log(await db.getLayaway(7086, 229));
+}

@@ -2,6 +2,7 @@ const sql = require("mssql");
 const fs = require("fs");
 
 let Sale = require("../models/sale");
+let Layaway = require("../models/layaway");
 const Customer = require("../models/customer");
 const Address = require("../models/address");
 
@@ -37,10 +38,12 @@ async function getLatestTender(storeId, location) {
   }
 }
 
-async function getTenderEntry(tenderEntryID) {
+async function getTenderEntry(tenderEntryID, storeId) {
   let query =
     "SELECT TenderEntry.ID as 'tenderID', TenderEntry.StoreID, TenderEntry.TransactionNumber, TenderEntry.[Description], TenderEntry.Amount, TenderEntry.OrderHistoryID FROM TenderEntry WHERE TenderEntry.ID = " +
-    tenderEntryID;
+    tenderEntryID +
+    " AND TenderEntry.StoreID = " +
+    storeId;
   const pool = new sql.ConnectionPool(config[0]);
   pool.on("error", err => {
     console.log("SQL Error: ", err);
@@ -50,7 +53,7 @@ async function getTenderEntry(tenderEntryID) {
     await pool.connect();
     let result = await pool.request().query(query);
 
-    return { success: result };
+    return result.recordset[0];
   } catch (err) {
     console.log("Query Error: ", err);
     return { err: err };
@@ -83,7 +86,7 @@ async function getTenders(transactionNumber, storeId) {
   }
 }
 
-async function getTransaction(transactionNumber, storeId) {
+async function getTransaction(transactionType, transactionNumber, storeId) {
   let query =
     "SELECT ShipToID, [Time], CustomerID, Cashier.Name as 'Cashier', [Total], SalesTax, Comment, ReferenceNumber, ShipToID, Store.Name as 'Store', RecallID FROM [Transaction] LEFT JOIN Cashier ON [Transaction].CashierID = Cashier.ID AND [Transaction].StoreID = Cashier.StoreID LEFT JOIN Store ON [Transaction].StoreID = Store.ID WHERE [Transaction].TransactionNumber = " +
     transactionNumber +
@@ -98,16 +101,9 @@ async function getTransaction(transactionNumber, storeId) {
     await pool.connect();
     let result = await pool.request().query(query);
     // console.log(result.recordset[0]);
-    let saleResult;
+    saleResult = new Sale(transactionType, transactionNumber, storeId);
     let recallId = result.recordset[0].RecallID;
     let saleTotal = result.recordset[0].Total;
-    if (recallId == 0) {
-      saleResult = new Sale("Sale", transactionNumber);
-    } else if (recallId != 0 && saleTotal > 0) {
-      saleResult = new Sale("Closed Layaway", transactionNumber);
-    } else {
-      saleResult = new Sale("Return", transactionNumber);
-    }
 
     saleResult.storeID = storeId;
     saleResult.storeName = result.recordset[0].Store;
@@ -121,7 +117,6 @@ async function getTransaction(transactionNumber, storeId) {
     saleResult.transactionEntries = await getItems(
       saleResult.transactionEntries
     );
-    // TODO: Create calculateTotalLot()
     saleResult.totalLot = await calculateLot(saleResult.transactionEntries);
     saleResult.comment = result.recordset[0].Comment;
     saleResult.customerID = result.recordset[0].CustomerID;
@@ -136,7 +131,7 @@ async function getTransaction(transactionNumber, storeId) {
     saleResult.tenders = await getTenders(transactionNumber, storeId);
     saleResult.referenceNumber = result.recordset[0].ReferenceNumber;
     saleResult.recallID = result.recordset[0].RecallID;
-    console.log(saleResult);
+    // console.log(saleResult);
     return saleResult;
   } catch (err) {
     console.log("Query Error: ", err);
@@ -284,7 +279,7 @@ async function calculateLot(transactionEntries) {
   return totalLot;
 }
 
-async function updateLatestTender(storeID, tenderID) {
+async function insertLatestTender(storeID, tenderID) {
   let query =
     "INSERT INTO tenderEntries VALUES(" +
     storeID +
@@ -301,7 +296,29 @@ async function updateLatestTender(storeID, tenderID) {
   try {
     await pool.connect();
     let result = await pool.request().query(query);
-    console.log(result);
+    // console.log(result);
+    // return result.recordset[0];
+  } catch (err) {
+    console.log("Query Error: ", err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
+async function updateLatestTender(storeID, tenderID) {
+  let query = `UPDATE tenderEntries SET lastCheckedTenderID = ${tenderID}, lastCheckedTime = GETDATE() WHERE storeID = ${storeID}`;
+
+  // console.log(query);
+  const pool = new sql.ConnectionPool(config[1]);
+  pool.on("error", err => {
+    console.log("SQL Error: ", err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+    // console.log(result);
     // return result.recordset[0];
   } catch (err) {
     console.log("Query Error: ", err);
@@ -337,6 +354,74 @@ async function getAllNewTenders(storeID, startTenderID) {
   }
 }
 
+async function getOrderEntries(orderID, storeID) {
+  let query = `SELECT * FROM OrderEntry WHERE OrderEntry.OrderID = ${orderID} AND OrderEntry.StoreID = ${storeID}`;
+  const pool = new sql.ConnectionPool(config[0]);
+  pool.on("error", err => {
+    console.log("SQL Error: ", err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+    return result.recordset;
+  } catch (err) {
+    console.log("Query Error: ", err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
+async function getLayaway(orderID, storeID) {
+  let query = "SELECT * FROM [Order] WHERE ID = " + orderID;
+  const pool = new sql.ConnectionPool(config[0]);
+  pool.on("error", err => {
+    console.log("SQL Error: ", err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+    let order = result.recordset[0];
+    // console.log(order);
+    // let orderID = order.ID;
+    order.OrderEntries = await getOrderEntries(orderID, storeID);
+    for (let i = 0; i < order.OrderEntries.length; i++) {
+      order.OrderEntries[i].Item = await getItem(order.OrderEntries[i].ItemID);
+    }
+
+    // console.log(order);
+    return order;
+  } catch (err) {
+    console.log("Get Layaway Query Error: ", err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
+async function getOrderID(orderHistoryID, storeId) {
+  let query = `SELECT OrderID FROM OrderHistory WHERE OrderHistory.ID = ${orderHistoryID}`;
+  const pool = new sql.ConnectionPool(config[0]);
+  pool.on("error", err => {
+    console.log("SQL Error: ", err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+    // console.log("Get OrderID query: ", query);
+
+    return result.recordset[0].OrderID;
+  } catch (err) {
+    console.log("Get Order ID Query Error: ", err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
 sql.on("error", err => {
   console.log("Server Error:", err);
 });
@@ -350,6 +435,10 @@ module.exports = {
   getTransactionEntries: getTransactionEntries,
   getShippingAddress: getShippingAddress,
   getItems: getItems,
+  insertLatestTender: insertLatestTender,
   updateLatestTender: updateLatestTender,
-  getAllNewTenders: getAllNewTenders
+  getAllNewTenders: getAllNewTenders,
+  getLayaway: getLayaway,
+  getOrderEntries: getOrderEntries,
+  getOrderID: getOrderID
 };
