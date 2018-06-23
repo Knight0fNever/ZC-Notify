@@ -107,6 +107,7 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
 
     saleResult.storeID = storeId;
     saleResult.storeName = result.recordset[0].Store;
+    saleResult.store = await getStoreInfo(storeId);
     saleResult.transactionDate = result.recordset[0].Time;
     saleResult.total = result.recordset[0].Total;
     saleResult.salesTax = result.recordset[0].SalesTax;
@@ -132,7 +133,31 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
     saleResult.referenceNumber = result.recordset[0].ReferenceNumber;
     saleResult.recallID = result.recordset[0].RecallID;
     // console.log(saleResult);
+    fs.writeFileSync("./saleExport.json", JSON.stringify(saleResult));
     return saleResult;
+  } catch (err) {
+    console.log("Query Error: ", err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
+async function getStoreInfo(storeID) {
+  let query = `SELECT * FROM Store WHERE Store.ID = ${storeID}`;
+
+  const pool = new sql.ConnectionPool(config[0]);
+  pool.on("error", err => {
+    console.log("SQL Error: ", err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+
+    let store = result.recordset[0];
+
+    return store;
   } catch (err) {
     console.log("Query Error: ", err);
     return { err: err };
@@ -440,5 +465,6 @@ module.exports = {
   getAllNewTenders: getAllNewTenders,
   getLayaway: getLayaway,
   getOrderEntries: getOrderEntries,
-  getOrderID: getOrderID
+  getOrderID: getOrderID,
+  getStoreInfo: getStoreInfo
 };

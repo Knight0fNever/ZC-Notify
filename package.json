@@ -18,6 +18,7 @@
   "homepage": "https://github.com/Knight0fNever/ZC-Notify#readme",
   "dependencies": {
     "enum": "^2.5.0",
-    "mssql": "^4.1.0"
+    "mssql": "^4.1.0",
+    "nodemailer": "^4.6.7"
   }
 }

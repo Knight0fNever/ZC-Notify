@@ -63,3 +63,4 @@ typings/
 # db connection details
 dbconfig.json
 .vscode/settings.json
+emailConfig.json

@@ -1,4 +1,5 @@
 const fs = require("fs");
+const email = require("./controllers/email");
 
 const storeConfig = JSON.parse(fs.readFileSync("./storeConfig.json", "utf8"));
 
@@ -76,6 +77,7 @@ async function startCheckTenders() {
   // 3. Check tender type of each Tender.
   for (let i = 0; i < newTenders.length; i++) {
     let sale;
+    // Sale
     if (newTenders[i].TransactionNumber != 0 && newTenders[i].Amount > 2000) {
       sale = await db.getTransaction(
         "Sale",
@@ -88,6 +90,7 @@ async function startCheckTenders() {
       newTenders[i].TransactionNumber != 0 &&
       newTenders[i].Amount < 0
     ) {
+      // Refund
       sale = await db.getTransaction(
         "Refund",
         newTenders[i].TransactionNumber,
@@ -107,9 +110,9 @@ async function startCheckTenders() {
       //Layaway Payment
       let orderID = await db.getOrderID(newTenders[i].OrderHistoryID);
       let layaway = await db.getLayaway(orderID, newTenders[i].StoreID);
-      if (layaway.Closed == false) {
-        paymentEmailQueue.push(layaway);
-      }
+      paymentEmailQueue.push(layaway);
+    } else {
+      console.log("Not Catagorized");
     }
   }
   console.log("Sales: ", saleEmailQueue);
@@ -146,6 +149,4 @@ async function pre() {
 
 // test();
 
-async function test() {
-  console.log(await db.getLayaway(7086, 229));
-}
+async function test() {}

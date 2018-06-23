@@ -1,18 +1,22 @@
 [
   {
     "name": "Hermitage Gallery",
-    "storeID": 229
+    "storeID": 229,
+    "logo": "https://i.imgur.com/EcxjDjr.jpg"
   },
   {
     "name": "ZK Gallery",
-    "storeID": 213
+    "storeID": 213,
+    "logo": "https://i.imgur.com/uuELJVY.jpg"
   },
   {
     "name": "Eden Gallery",
-    "storeID": 223
+    "storeID": 223,
+    "logo": "https://i.imgur.com/B87eRBX.jpg"
   },
   {
     "name": "Royal Collection",
-    "storeID": 1018
+    "storeID": 1018,
+    "logo": "https://i.imgur.com/wVqw2DK.jpg"
   }
 ]
