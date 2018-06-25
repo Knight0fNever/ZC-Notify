@@ -121,19 +121,19 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
     saleResult.totalLot = await calculateLot(saleResult.transactionEntries);
     saleResult.comment = result.recordset[0].Comment;
     saleResult.customerID = result.recordset[0].CustomerID;
-    saleResult.customer = await getCustomer(saleResult.customerID);
+    if (result.recordset[0].CustomerID != 0) {
+      saleResult.customer = await getCustomer(saleResult.customerID);
+    }
     if (result.recordset[0].ShipToID[0] != 0) {
       saleResult.customer.shippingAddress = await getShippingAddress(
         result.recordset[0].ShipToID[0]
       );
-    } else {
-      saleResult.customer.shippingAddress = null;
     }
     saleResult.tenders = await getTenders(transactionNumber, storeId);
     saleResult.referenceNumber = result.recordset[0].ReferenceNumber;
     saleResult.recallID = result.recordset[0].RecallID;
     // console.log(saleResult);
-    fs.writeFileSync("./saleExport.json", JSON.stringify(saleResult));
+    // fs.writeFileSync("./saleExport.json", JSON.stringify(saleResult));
     return saleResult;
   } catch (err) {
     console.log("Query Error: ", err);
@@ -179,28 +179,10 @@ async function getCustomer(customerId) {
     await pool.connect();
     let result = await pool.request().query(query);
 
-    let dbresult = { success: result }.success.recordset[0];
-
-    let customer = new Customer();
-    customer.customerID = customerId;
-    customer.firstName = dbresult.FirstName;
-    customer.lastName = dbresult.LastName;
-    customer.company = dbresult.Company;
-    customer.address = new Address(
-      dbresult.Address,
-      dbresult.Address2,
-      dbresult.City,
-      dbresult.State,
-      dbresult.Zip,
-      dbresult.Country
-    );
-    customer.phoneNumber = dbresult.PhoneNumber;
-    customer.email = dbresult.EmailAddress;
-
-    return customer;
+    return result.recordset[0];
   } catch (err) {
     console.log("Query Error: ", err);
-    return { err: err };
+    return {};
   } finally {
     pool.close();
   }

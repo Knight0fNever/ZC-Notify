@@ -73,24 +73,177 @@ function buildTenders(tenders) {
   return result;
 }
 
-function buildSaleHTML(sale, storeID) {
-  let currentSale = sale;
-  let currentStoreID = storeID;
-  let logo = "";
-
-  let tenders = buildTenders(currentSale.tenders);
-
-  if (currentStoreID == 229) {
-    logo = storeConfig[0].logo;
-  } else if (currentStoreID == 213) {
-    logo = storeConfig[1].logo;
-  } else if (currentStoreID == 223) {
-    logo = storeConfig[2].logo;
-  } else if (currentStoreID == 1018) {
-    logo = storeConfig[3].logo;
+function buildCustomer(customer) {
+  let currentCustomer = `<!-- Customer Info -->
+              <td style="padding: 5px 5px 40px;" align="right" valign="top">
+                ${customer.Company}
+                <br> ${customer.FirstName} ${customer.LastName}
+                <br>${customer.Address}
+                <br>${customer.Address2}
+                <br>${customer.City}, ${customer.State} ${customer.Zip} ${
+    customer.Country
   }
+  <br>${customer.PhoneNumber}
+                <br>${customer.Email}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>`;
 
-  let html = `<style>
+  return currentCustomer;
+}
+
+function buildItemRows(transactionEntries) {
+  let header = `<tr>
+        <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+          bgcolor="#eee" valign="top">
+          SKU
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+          align="right" bgcolor="#eee" valign="top">
+          Description
+        </td>
+      </tr>
+
+      <tr>
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          Extended Description
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
+          valign="top">
+          Quantity
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
+          valign="top">
+          Price
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
+          valign="top">
+          Tax
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
+          valign="top">
+          Lot
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
+          valign="top">
+          Sales Rep
+        </td>
+      </tr>
+      
+      `;
+
+  let result = header;
+
+  if (Array.isArray(transactionEntries)) {
+    transactionEntries.forEach(entry => {
+      result += `<tr>
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.item.ItemLookupCode}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.item.Description}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.item.ExtendedDescription}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.Quantity}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.Price}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.SalesTax}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.lot}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.SalesRep}
+        </td>
+
+      </tr>
+      
+      `;
+    });
+  } else {
+    result += `<tr>
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.item.ItemLookupCode}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.item.Description}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.item.ExtendedDescription}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.Quantity}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.Price}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.SalesTax}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.lot}
+        </td>
+
+        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
+          ${entry.SalesRep}
+        </td>
+
+      </tr>
+      
+      `;
+  }
+  return result;
+}
+
+function buildTotals(currentSale) {
+  let result = `
+  <!-- Totals -->
+      <tr>
+        <td style="padding: 5px;" valign="top"></td>
+        <td style="padding: 5px;" valign="top"></td>
+        <td style="padding: 5px;" valign="top"></td>
+        <td style="padding: 5px;" valign="top"></td>
+
+        <td style="border-top-width: 2px; border-top-color: #eee; border-top-style: solid; font-weight: bold; padding: 5px;" align="right"
+          valign="top">
+          Total: ${currentSale.total}
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>`;
+}
+
+function getHTMLTemplate(currentSale) {
+  let logo = "";
+  return `<style>
   body {
     font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
     text-align: center;
@@ -166,86 +319,47 @@ function buildSaleHTML(sale, storeID) {
                 <br> ${currentSale.store.City}, ${currentSale.store.State} ${
     currentSale.store.Zip
   }
-              </td>
+              </td>`;
+}
 
-              <!-- Customer Info -->
-              <td style="padding: 5px 5px 40px;" align="right" valign="top">
-                ${currentSale.customer.company}
-                <br> ${currentSale.customer.firstName} ${
-    currentSale.customer.lastName
+function buildSaleHTML(sale, storeID) {
+  let currentSale = sale;
+  let currentStoreID = storeID;
+  let logo = "";
+
+  if (currentStoreID == 229) {
+    logo = storeConfig[0].logo;
+  } else if (currentStoreID == 213) {
+    logo = storeConfig[1].logo;
+  } else if (currentStoreID == 223) {
+    logo = storeConfig[2].logo;
+  } else if (currentStoreID == 1018) {
+    logo = storeConfig[3].logo;
   }
-                <br>${currentSale.customer.address.address}
-                <br>${currentSale.customer.address.address2}
-                <br>${currentSale.customer.address.city}, ${
-    currentSale.customer.address.state
-  } ${currentSale.customer.address.zip} ${currentSale.customer.address.country}
-  <br>${currentSale.customer.phoneNumber}
-                <br>${currentSale.customer.email}
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
 
-      ${tenders}
+  let html = getHTMLTemplate(currentSale);
 
-      <!-- Item Details -->
-      <tr>
-        <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
-          bgcolor="#eee" valign="top">
-          Item
-        </td>
+  if (
+    Object.keys(currentSale.customer).length != 0 &&
+    currentSale.tenders.constructor === Object
+  ) {
+    html += buildCustomer(currentSale.customer) + "\n";
+  }
 
-        <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
-          align="right" bgcolor="#eee" valign="top">
-          Price
-        </td>
-      </tr>
+  if (
+    Object.keys(currentSale.tenders).length != 0 &&
+    currentSale.tenders.constructor === Object
+  ) {
+    html += buildTenders(currentSale.tenders) + "\n";
+  }
 
-      <tr>
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          Website design
-        </td>
+  if (currentSale.transactionEntries.length > 0) {
+    html += buildItemRows(currentSale.transactionEntries);
+  }
 
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
-          valign="top">
-          $300.00
-        </td>
-      </tr>
+  html += buildTotals(currentSale);
 
-      <tr>
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          Hosting (3 months)
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
-          valign="top">
-          $75.00
-        </td>
-      </tr>
-
-      <tr>
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: none; padding: 5px;" valign="top">
-          Domain name (1 year)
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: none; padding: 5px;" align="right" valign="top">
-          $10.00
-        </td>
-      </tr>
-
-      <!-- Totals -->
-      <tr>
-        <td style="padding: 5px;" valign="top"></td>
-
-        <td style="border-top-width: 2px; border-top-color: #eee; border-top-style: solid; font-weight: bold; padding: 5px;" align="right"
-          valign="top">
-          Total: $385.00
-        </td>
-      </tr>
-    </table>
-  </div>
-</body>`;
+  return html;
 }
 
 function buildPaymentHTML(layaway, storeID) {}

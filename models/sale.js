@@ -9,7 +9,7 @@ class Sale {
     this.total = 0.0;
     this.salesTax = 0.0;
     this.totalLot = 0.0;
-    this.customer = new Customer();
+    this.customer = {};
     this.customerID = 0;
     this.tenders = [];
     this.transactionEntries = [];

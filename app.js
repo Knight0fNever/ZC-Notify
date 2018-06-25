@@ -115,10 +115,16 @@ async function startCheckTenders() {
       console.log("Not Catagorized");
     }
   }
-  console.log("Sales: ", saleEmailQueue);
-  console.log("Refunds: ", refundEmailQueue);
-  console.log("Payments: ", paymentEmailQueue);
-  console.log("Payment Refunds: ", refundPaymentQueue);
+  // console.log("Sales: ", saleEmailQueue);
+  // console.log(saleEmailQueue[0]);
+  fs.writeFileSync(
+    "./htmlTest.html",
+    email.buildSaleHTML(saleEmailQueue[0]),
+    "utf-8"
+  );
+  // console.log("Refunds: ", refundEmailQueue);
+  // console.log("Payments: ", paymentEmailQueue);
+  // console.log("Payment Refunds: ", refundPaymentQueue);
 }
 
 async function checkNewTenders(storeID) {
