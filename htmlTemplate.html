@@ -1,177 +1,274 @@
-<style>
-  body {
-    font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
-    text-align: center;
-    color: #777;
-  }
+<!doctype html>
+<html>
 
-  body h1 {
-    font-weight: 300;
-    margin-bottom: 0px;
-    padding-bottom: 0px;
-    color: #000;
-  }
+  <head>
+    <meta charset="utf-8">
+    <title>A simple, clean, and responsive HTML invoice template</title>
 
-  body h3 {
-    font-weight: 300;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    font-style: italic;
-    color: #555;
-  }
+    <style>
+      .invoice-box {
+        max-width: 1000px;
+        margin: auto;
+        padding: 30px;
+        border: 1px solid #eee;
+        box-shadow: 0 0 10px rgba(0, 0, 0, .15);
+        font-size: 16px;
+        line-height: 24px;
+        font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+        color: #555;
+      }
 
-  body a {
-    color: #06F;
-  }
+      .invoice-box table {
+        width: 100%;
+        line-height: inherit;
+        text-align: left;
+      }
 
-  @media only screen and (max-width: 600px) {
-    .invoice-box table tr.top table td {
-      width: 100%;
-      display: block;
-      text-align: center;
-    }
-    .invoice-box table tr.information table td {
-      width: 100%;
-      display: block;
-      text-align: center;
-    }
-  }
+      .invoice-box table td {
+        padding: 5px;
+        vertical-align: top;
+      }
 
-</style>
-</head>
+      .invoice-box table tr td:nth-child(2) {
+        text-align: right;
+      }
 
-<body style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; text-align: center; color: #777;">
-  <h1 style="font-weight: 300; margin-bottom: 0px; padding-bottom: 0px; color: #000;">A simple, clean, and responsive HTML invoice template</h1>
-  <h3 style="font-weight: 300; margin-top: 10px; margin-bottom: 20px; font-style: italic; color: #555;">Because sometimes, all you need is something simple.</h3>
-  Find the code on
-  <a href="https://github.com/sparksuite/simple-html-invoice-template" style="color: #06F;">GitHub</a>. Licensed under the
-  <a href="http://opensource.org/licenses/MIT" target="_blank" style="color: #06F;">MIT license</a>.
-  <br>
-  <br>
-  <br>
+      .invoice-box table tr.top table td {
+        padding-bottom: 20px;
+      }
 
-  <div style="max-width: 800px; box-shadow: 0 0 10px rgba(0, 0, 0, .15); font-size: 16px; line-height: 24px; font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; color: #555; margin: auto; padding: 30px; border: 1px solid #eee;">
-    <table cellpadding="0" cellspacing="0" style="width: 100%; line-height: inherit; text-align: left;">
-      <tr>
-        <td colspan="2" style="padding: 5px;" valign="top">
-          <table style="width: 100%; line-height: inherit; text-align: left;">
-            <tr>
-              <!-- LOGO -->
-              <td style="font-size: 45px; line-height: 45px; color: #333; padding: 5px 5px 20px;" valign="top">
-                <img src="https://www.sparksuite.com/images/logo.png" style="width: 100%; max-width: 300px;">
-              </td>
+      .invoice-box table tr.top table td.title {
+        font-size: 45px;
+        line-height: 45px;
+        color: #333;
+      }
 
-              <!-- Invoice Info -->
-              <td style="padding: 5px 5px 20px;" align="right" valign="top">
-                Invoice #: 123
-                <br> Created: January 1, 2015
-                <br> Due: February 1, 2015
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
+      .invoice-box table tr.information table td {
+        padding-bottom: 40px;
 
-      <tr>
-        <td colspan="2" style="padding: 5px;" valign="top">
-          <table style="width: 100%; line-height: inherit; text-align: left;">
-            <tr>
-              <!-- Gallery Info -->
-              <td style="padding: 5px 5px 40px;" valign="top">
-                Sparksuite, Inc.
-                <br> 12345 Sunny Road
-                <br> Sunnyville, TX 12345
-              </td>
+      }
 
-              <!-- Customer Info -->
-              <td style="padding: 5px 5px 40px;" align="right" valign="top">
-                Acme Corp.
-                <br> John Doe
-                <br>
-                <a href="https://www.sparksuite.com/cdn-cgi/l/email-protection" data-cfemail="ee84818680ae8b968f839e828bc08d8183" style="color: #06F;">[email protected]</a>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
+      .invoice-box table tr.heading td {
+        background: #eee;
+        border-bottom: 1px solid #ddd;
+        font-weight: bold;
+      }
 
-      <tr>
-        <!-- Tenders -->
-        <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
-          bgcolor="#eee" valign="top">
-          Payment Method
-        </td>
+      .invoice-box table tr.details td {
+        padding-bottom: 20px;
+      }
 
-        <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
-          align="right" bgcolor="#eee" valign="top">
-          Check #
-        </td>
-      </tr>
+      .invoice-box table tr.item td {
+        border-bottom: 1px solid #eee;
+      }
 
-      <tr>
-        <td style="padding: 5px 5px 20px;" valign="top">
-          Check
-        </td>
+      .invoice-box table tr.item.last td {
+        border-bottom: none;
+      }
 
-        <td style="padding: 5px 5px 20px;" align="right" valign="top">
-          1000
-        </td>
-      </tr>
+      .invoice-box table tr.total td:nth-child(2) {
+        font-weight: bold;
+      }
 
-      <!-- Item Details -->
-      <tr>
-        <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
-          bgcolor="#eee" valign="top">
-          Item
-        </td>
+      @media only screen and (max-width: 600px) {
+        .invoice-box table tr.top table td {
+          width: 100%;
+          display: block;
+          text-align: center;
+        }
 
-        <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
-          align="right" bgcolor="#eee" valign="top">
-          Price
-        </td>
-      </tr>
+        .invoice-box table tr.information table td {
+          width: 100%;
+          display: block;
+          text-align: center;
+        }
+      }
 
-      <tr>
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          Website design
-        </td>
+      /** RTL **/
 
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
-          valign="top">
-          $300.00
-        </td>
-      </tr>
+      .rtl {
+        direction: rtl;
+        font-family: Tahoma, 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+      }
 
-      <tr>
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          Hosting (3 months)
-        </td>
+      .rtl table {
+        text-align: right;
+      }
 
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
-          valign="top">
-          $75.00
-        </td>
-      </tr>
+      .rtl table tr td:nth-child(2) {
+        text-align: left;
+      }
 
-      <tr>
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: none; padding: 5px;" valign="top">
-          Domain name (1 year)
-        </td>
+    </style>
+  </head>
 
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: none; padding: 5px;" align="right" valign="top">
-          $10.00
-        </td>
-      </tr>
+  <body>
+    <div class="invoice-box">
+      <table cellpadding="0" cellspacing="0">
+        <tr class="top">
+          <td colspan="8">
+            <table>
+              <tr>
+                <td class="title">
+                  <img src="./res/img/hermitage.jpg" style="width:100%; max-width: 140px;">
+                </td>
+                <td colspan="6"></td>
+                <td style="text-align: right;">
+                  Invoice #: 123
+                  <br> Created: January 1, 2015
+                  <br> Due: February 1, 2015
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
 
-      <!-- Totals -->
-      <tr>
-        <td style="padding: 5px;" valign="top"></td>
+        <tr class="information">
+          <td colspan="8">
+            <table>
+              <tr>
+                <td>
+                  Hermitage Gallery
+                  <br> 229 Jefferson Street
+                  <br> San Francisco, CA 94133
+                </td>
+                <td colspan="6"></td>
+                <td style="text-align: right;">
+                  Acme Corp.
+                  <br> John Doe
+                  <br> john@example.com
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
 
-        <td style="border-top-width: 2px; border-top-color: #eee; border-top-style: solid; font-weight: bold; padding: 5px;" align="right"
-          valign="top">
-          Total: $385.00
-        </td>
-      </tr>
-    </table>
-  </div>
-</body>
+        <tr>
+          <td colspan="8" style="padding: 0;">
+            <table cellpadding="0" cellspacing="0">
+              <tbody>
+                <tr class="heading">
+                  <td style="vertical-align: middle;">
+                    Payment Method
+                  </td>
+                  <td colspan="6"></td>
+                  <td style="text-align: right; vertical-align: middle;">
+                    Amount
+                  </td>
+                </tr>
+                <tr class="details">
+                  <td style="vertical-align: middle;">
+                    Check
+                  </td>
+                  <td colspan="6"></td>
+                  <td style="text-align: right; vertical-align: middle;">
+                    $1,000.00
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+
+
+
+        <tr>
+          <td colspan="8" style="padding: 0;">
+            <table cellpadding="0" cellspacing="0">
+              <tbody>
+                <tr class="heading">
+                  <td style="text-align: center; min-width: 8%; vertical-align: middle;">
+                    SKU
+                  </td>
+                  <td style="text-align: center; min-width: 20%; vertical-align: middle;">Description</td>
+                  <td style="text-align: center; min-width: 15%; vertical-align: middle;">Extended Description</td>
+                  <td style="text-align: center; min-width: 8%; vertical-align: middle;">Quantity</td>
+                  <td style="text-align: center; min-width: 8%; vertical-align: middle;">Price</td>
+                  <td style="text-align: center; min-width: 8%; vertical-align: middle;">Tax</td>
+                  <td style="text-align: center; min-width: 8%; vertical-align: middle;">Lot</td>
+                  <td style="text-align: center; min-width: 12%; vertical-align: middle;">
+                    Sales Rep
+                  </td>
+                </tr>
+                <tr class="item">
+                  <td style="text-align: center;">111256</td>
+                  <td style="text-align: center;">
+                    Website design
+                  </td>
+                  <td style="text-align: center;"></td>
+                  <td style="text-align: center;"></td>
+                  <td style="text-align: center;">
+                    $300.00
+                  </td>
+                  <td style="text-align: center;"></td>
+                  <td style="text-align: center;"></td>
+                  <td style="text-align: center;"></td>
+                </tr>
+
+                <tr class="item">
+                  <td style="text-align: center;">125698</td>
+                  <td style="text-align: center;">
+                    Hosting (3 months)
+                  </td>
+                  <td style="text-align: center;"></td>
+                  <td style="text-align: center;"></td>
+                  <td style="text-align: center;">
+                    $75.00
+                  </td>
+                  <td style="text-align: center;"></td>
+                  <td style="text-align: center;"></td>
+                  <td style="text-align: center;"></td>
+                </tr>
+
+                <tr class="item">
+                  <td style="text-align: center;">185654</td>
+                  <td style="text-align: center;">
+                    Domain name (1 year)
+                  </td>
+                  <td style="text-align: center;"></td>
+                  <td style="text-align: center;"></td>
+                  <td style="text-align: center;">
+                    $10.00
+                  </td>
+                  <td style="text-align: center;"></td>
+                  <td style="text-align: center;"></td>
+                  <td style="text-align: center;"></td>
+                </tr>
+
+                <tr class="total">
+                  <td colspan="3" style="text-align: right;">
+                    <strong style="margin-top: 5px;">Total: </strong>
+                  </td>
+                  <!-- Quantity Total -->
+                  <td>
+
+                  </td>
+                  <!-- Sales Total -->
+                  <td style="text-align: center;">
+                    $385.00
+                  </td>
+                  <!-- Tax Total -->
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <table>
+              <tr>
+                <td style="padding-top: 50px;">
+                  Transaction Comment: slkjngksdnflskdnglkgnglsnkglksglksndglkndlknadglkn
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+
+</html>

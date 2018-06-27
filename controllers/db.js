@@ -7,6 +7,7 @@ const Customer = require("../models/customer");
 const Address = require("../models/address");
 
 const config = JSON.parse(fs.readFileSync("./dbconfig.json", "utf8"));
+const storeConfig = JSON.parse(fs.readFileSync("./storeConfig.json", "utf8"));
 
 // Return promise that resolves into latest tenderID. 0 for local, 1 for AWs
 async function getLatestTender(storeId, location) {
@@ -87,11 +88,12 @@ async function getTenders(transactionNumber, storeId) {
 }
 
 async function getTransaction(transactionType, transactionNumber, storeId) {
-  let query =
-    "SELECT ShipToID, [Time], CustomerID, Cashier.Name as 'Cashier', [Total], SalesTax, Comment, ReferenceNumber, ShipToID, Store.Name as 'Store', RecallID FROM [Transaction] LEFT JOIN Cashier ON [Transaction].CashierID = Cashier.ID AND [Transaction].StoreID = Cashier.StoreID LEFT JOIN Store ON [Transaction].StoreID = Store.ID WHERE [Transaction].TransactionNumber = " +
-    transactionNumber +
-    " AND [Transaction].StoreID = " +
-    storeId;
+  let query = `SELECT ShipToID, [Time], CustomerID, Cashier.Name as 'Cashier', [Total], SalesTax, Comment, ReferenceNumber, ShipToID, Store.Name as 'Store', RecallID, Store.Address1 as 'StoreAddress', Store.City as 'StoreCity', Store.[State] as 'StoreState', Store.Zip as 'StoreZip'
+  FROM [Transaction] 
+  LEFT JOIN Cashier ON [Transaction].CashierID = Cashier.ID AND [Transaction].StoreID = Cashier.StoreID 
+  LEFT JOIN Store ON [Transaction].StoreID = Store.ID 
+  WHERE [Transaction].TransactionNumber = ${transactionNumber} AND [Transaction].StoreID = ${storeId}`;
+
   const pool = new sql.ConnectionPool(config[0]);
   pool.on("error", err => {
     console.log("SQL Error: ", err);
@@ -106,7 +108,23 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
     let saleTotal = result.recordset[0].Total;
 
     saleResult.storeID = storeId;
+    if (storeId == 229) {
+      saleResult.logo = storeConfig[0].logo;
+    } else if (storeId == 213) {
+      saleResult.logo = storeConfig[1].logo;
+    } else if (storeId == 223) {
+      saleResult.logo = storeConfig[2].logo;
+    } else if (storeId == 1018) {
+      saleResult.logo = storeConfig[3].logo;
+    } else {
+      saleResult.logo = "";
+    }
     saleResult.storeName = result.recordset[0].Store;
+    saleResult.storeAddress = result.recordset[0].StoreAddress;
+    saleResult.storeCity = result.recordset[0].StoreCity;
+    saleResult.storeState = result.recordset[0].StoreState;
+    saleResult.storeZip = result.recordset[0].StoreZip;
+    saleResult.cashierName = result.recordset[0].Cashier;
     saleResult.store = await getStoreInfo(storeId);
     saleResult.transactionDate = result.recordset[0].Time;
     saleResult.total = result.recordset[0].Total;
@@ -115,6 +133,8 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
       transactionNumber,
       storeId
     );
+    saleResult.totalQty = getSaleSum(saleResult.transactionEntries);
+    // console.log(saleResult.totalQty);
     saleResult.transactionEntries = await getItems(
       saleResult.transactionEntries
     );
@@ -141,6 +161,22 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
   } finally {
     pool.close();
   }
+}
+
+function getSaleSum(transactionEntries) {
+  let total = 0;
+  transactionEntries.forEach(entry => {
+    total += entry.Quantity;
+  });
+  return total;
+}
+
+function getLotSum(transactionEntries) {
+  let total = 0;
+  transactionEntries.forEach(entry => {
+    total += entry.lot;
+  });
+  return total;
 }
 
 async function getStoreInfo(storeID) {
@@ -189,11 +225,9 @@ async function getCustomer(customerId) {
 }
 
 async function getTransactionEntries(transactionNumber, storeId) {
-  let query =
-    "SELECT * FROM TransactionEntry WHERE TransactionEntry.TransactionNumber = " +
-    transactionNumber +
-    " AND TransactionEntry.StoreID = " +
-    storeId;
+  let query = `SELECT TransactionEntry.*, SalesRep.Name as 'SalesRep' FROM TransactionEntry
+  LEFT JOIN SalesRep ON TransactionEntry.SalesRepID = SalesRep.ID AND TransactionEntry.StoreID = SalesRep.StoreID
+  WHERE TransactionEntry.TransactionNumber = ${transactionNumber} AND TransactionEntry.StoreID = ${storeId}`;
 
   // console.log(query);
   const pool = new sql.ConnectionPool(config[0]);

@@ -1,187 +1,178 @@
-<style>
-  body {
-    font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
-    text-align: center;
-    color: #777;
-  }
+<html>
 
-  body h1 {
-    font-weight: 300;
-    margin-bottom: 0px;
-    padding-bottom: 0px;
-    color: #000;
-  }
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta charset="utf-8">
+    <title>A simple, clean, and responsive HTML invoice template</title>
 
-  body h3 {
-    font-weight: 300;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    font-style: italic;
-    color: #555;
-  }
 
-  body a {
-    color: #06F;
-  }
+    <style>
+      @media only screen and (max-width: 600px) {
+        .invoice-box table tr.top table td {
+          width: 100%;
+          display: block;
+          text-align: center;
+        }
+        .invoice-box table tr.information table td {
+          width: 100%;
+          display: block;
+          text-align: center;
+        }
+      }
 
-  @media only screen and (max-width: 600px) {
-    .invoice-box table tr.top table td {
-      width: 100%;
-      display: block;
-      text-align: center;
-    }
-    .invoice-box table tr.information table td {
-      width: 100%;
-      display: block;
-      text-align: center;
-    }
-  }
+    </style>
+  </head>
 
-</style>
-</head>
-
-<body style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; text-align: center; color: #777;">
-
-  <div style="max-width: 800px; box-shadow: 0 0 10px rgba(0, 0, 0, .15); font-size: 16px; line-height: 24px; font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; color: #555; margin: auto; padding: 30px; border: 1px solid #eee;">
-    <table cellpadding="0" cellspacing="0" style="width: 100%; line-height: inherit; text-align: left;">
-      <tr>
-        <td colspan="2" style="padding: 5px;" valign="top">
-          <table style="width: 100%; line-height: inherit; text-align: left;">
-            <tr>
-              <!-- LOGO -->
-              <td style="font-size: 45px; line-height: 45px; color: #333; padding: 5px 5px 20px;" valign="top">
-                <img src="" style="width: 100%; max-width: 300px;">
-              </td>
-
-              <!-- Invoice Info -->
-              <td style="padding: 5px 5px 20px;" align="right" valign="top">
-                Invoice #: 31827
-                <br> Date: Mon Jun 25 2018 07:28:34 GMT-0700 (Pacific Daylight Time)
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-
-      <tr>
-        <td colspan="2" style="padding: 5px;" valign="top">
-          <table style="width: 100%; line-height: inherit; text-align: left;">
-            <tr>
-              <!-- Gallery Info -->
-              <td style="padding: 5px 5px 40px;" valign="top">
-                Hermitage Gallery
-                <br> 227 Jefferson
-                <br> San Francisco, CA 94133
-              </td><!-- Customer Info -->
-              <td style="padding: 5px 5px 40px;" align="right" valign="top">
-                
-                <br> Giancarlo Lanfranch
-                <br>
-                <br>
-                <br>,   
-  <br>27-828-828995
-                <br>undefined
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-<tr>
-      <!-- Tenders -->
-      <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
-          bgcolor="#eee" valign="top">
-          Payment Method(s)
-        </td>
-        <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
-          align="right" bgcolor="#eee" valign="top">
-          Amount
-        </td>
-      </tr>
+  <body>
+    <div style="max-width: 1000px; box-shadow: 0 0 10px rgba(0, 0, 0, .15); font-size: 16px; line-height: 24px; font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; color: #555; margin: auto; padding: 30px; border: 1px solid #eee;">
+      <table cellpadding="0" cellspacing="0" style="width: 100%; line-height: inherit; text-align: left;">
         <tr>
-        <td style="padding: 5px 5px 20px;" valign="top">
-          Terminal
-        </td>
+          <td colspan="8" style="padding: 5px;" valign="top">
+            <table style="width: 100%; line-height: inherit; text-align: left;">
+              <tr>
+                <td style="font-size: 45px; line-height: 45px; color: #333; padding: 5px 5px 20px;" valign="top">
+                  <img src="https://i.imgur.com/EcxjDjr.jpg" style="width: 100%; max-width: 140px;">
+                </td>
+                <td colspan="6" style="padding: 5px 5px 20px;" align="right" valign="top"></td>
+                <td style="padding: 5px 5px 20px;" align="right" valign="top">
+                  <strong>Transaction #: </strong>31838
+                  <br><strong>Date: </strong>Tuesday, June 26, 2018
+                  <br><strong>Cashier: </strong>Alon Zemach
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
 
-        <td style="padding: 5px 5px 20px;" align="right" valign="top">
-          12500
-        </td>
-      </tr>
+        <tr>
+          <td colspan="8" style="padding: 5px;" valign="top">
+            <table style="width: 100%; line-height: inherit; text-align: left;">
+              <tr>
+                <td style="padding: 5px 5px 40px;" valign="top">
+                  Hermitage Gallery
+                  <br>227 Jefferson
+                  <br> San Francisco, CA 94133
+                </td>
+                <td colspan="6" style="padding: 5px 5px 40px;" align="right" valign="top"></td>
+                <td style="padding: 5px 5px 40px;" align="right" valign="top">
+                  <!-- Customer Info -->
+  Eure Anelica
+                <br>335 King St
+                
+                <br>Redwood City, CA 94062 USA
+    <!-- Phone Number -->
+    <br>650-995-3465
+    <!-- Email -->
+    <br>anayre14@yahgoo.com
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+              <tr>
+          <td colspan="8" style="padding: 0;" valign="top">
+            <table cellpadding="0" cellspacing="0" style="width: 100%; line-height: inherit; text-align: left;">
+              <tbody>
+                <tr>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    bgcolor="#eee" valign="middle">
+                    Payment Method
+                  </td>
+                  <td colspan="6" style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="right" bgcolor="#eee" valign="top"></td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="right" bgcolor="#eee" valign="middle">
+                    Amount
+                  </td>
+                </tr>
+        <tr>
+                  <td style="padding: 5px 5px 20px;" valign="middle">
+                    Terminal
+                  </td>
+                  <td colspan="6" style="padding: 5px 5px 20px;" align="right" valign="top"></td>
+                  <td style="padding: 5px 5px 20px;" align="right" valign="middle">
+                    $2159.15
+                  </td>
+                </tr></tbody>
+            </table>
+          </td>
+        </tr>
 <tr>
-        <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
-          bgcolor="#eee" valign="top">
-          SKU
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
-          align="right" bgcolor="#eee" valign="top">
-          Description
-        </td>
-      </tr>
-
-      <tr>
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          Extended Description
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
-          valign="top">
-          Quantity
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
-          valign="top">
-          Price
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
-          valign="top">
-          Tax
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
-          valign="top">
-          Lot
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="right"
-          valign="top">
-          Sales Rep
-        </td>
-      </tr>
+          <td colspan="8" style="padding: 0;" valign="top">
+            <table cellpadding="0" cellspacing="0" style="width: 100%; line-height: inherit; text-align: left;">
+              <tbody>
+                <tr>
+                  <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">
+                    SKU
+                  </td>
+                  <td style="min-width: 20%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">Description</td>
+                  <td style="min-width: 15%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">Extended Description</td>
+                  <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">Quantity</td>
+                  <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">Price</td>
+                  <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">Tax</td>
+                  <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">Lot</td>
+                  <td style="min-width: 12%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">
+                    Sales Rep
+                  </td>
+                </tr>
       
       <tr>
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          104659
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          Acrylic - 7 Spheres Sculpture
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          16'' x 30'' x 92''
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          1
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          12500
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          0
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          14500
-        </td>
-
-        <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" valign="top">
-          undefined
-        </td>
-
-      </tr>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">111378</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">
+                    Bronze - Boy Holding Sister
+                  </td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">H: 48"</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">1</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">
+                    $1990.00
+                  </td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">$169.15</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">$3400.00</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">Menashe Razoli</td>
+                </tr>
       
-      undefined
+      
+  <!-- Totals -->
+      <tr>
+                  <td colspan="3" style="padding: 5px;" align="right" valign="top">
+                    <strong style="margin-top: 5px;">Total: </strong>
+                  </td>
+                  <!-- Quantity Total -->
+                  <td style="font-weight: bold; padding: 5px;" align="center" valign="top">
+                    1
+                  </td>
+                  <!-- Sales Total -->
+                  <td style="font-weight: bold; padding: 5px;" align="center" valign="top">
+                    $1990.00
+                  </td>
+                  <!-- Tax Total -->
+                  <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">
+                    $169.15
+                  </td>
+                  <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">$3400.00</td>
+                  <td style="font-weight: bold; padding: 5px;" align="center"; valign="top"></td>
+                </tr></tbody>
+            </table>
+          </td>
+        </tr>   
+      </table>
+    </div>
+  </body>
+
+</html>

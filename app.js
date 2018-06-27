@@ -122,6 +122,11 @@ async function startCheckTenders() {
     email.buildSaleHTML(saleEmailQueue[0]),
     "utf-8"
   );
+  fs.writeFileSync(
+    "./saleExport.json",
+    JSON.stringify(saleEmailQueue[0]),
+    "utf-8"
+  );
   // console.log("Refunds: ", refundEmailQueue);
   // console.log("Payments: ", paymentEmailQueue);
   // console.log("Payment Refunds: ", refundPaymentQueue);
