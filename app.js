@@ -4,11 +4,6 @@ const email = require("./controllers/email");
 const storeConfig = JSON.parse(fs.readFileSync("./storeConfig.json", "utf8"));
 
 const db = require("./controllers/db");
-let Sale = require("./models/sale");
-const Tender = require("./models/tender");
-const TransactionEntry = require("./models/transactionEntry");
-const Layaway = require("./models/layaway");
-const Email = require("./models/email");
 const File = require("./controllers/file");
 const Tenders = require("./controllers/tenders");
 
@@ -31,12 +26,13 @@ let date = new Date();
 // 5. Iterate through send queue and send each email.
 // 6. EXIT.
 
-// let minutes = 0.5;
-// let the_interval = minutes * 60 * 1000;
-// setInterval(function() {
-//   test();
-//   date = Date.now();
-// }, the_interval);
+let minutes = 0.1;
+let the_interval = minutes * 60 * 1000;
+setInterval(function() {
+  pre();
+  startCheckTenders();
+  // email();
+}, the_interval);
 
 let saleEmailQueue = [];
 let newLayawayEmailQueue = [];
@@ -44,10 +40,10 @@ let paymentEmailQueue = [];
 let refundPaymentQueue = [];
 let gnSaleEmailQueue = [];
 let refundEmailQueue = [];
+let notCatQueue = [];
 
 // 1. Check for lastCheckTender entry in AWS DB.
 // pre();
-startCheckTenders();
 
 async function startCheckTenders() {
   // 2. Check Tender table for new Tender
@@ -76,35 +72,21 @@ async function startCheckTenders() {
 
   // 3. Check tender type of each Tender.
   for (let i = 0; i < newTenders.length; i++) {
-    let sale;
     // Sale
     if (newTenders[i].TransactionNumber != 0 && newTenders[i].Amount > 2000) {
-      sale = await db.getTransaction(
-        "Sale",
-        newTenders[i].TransactionNumber,
-        newTenders[i].StoreID
-      );
-      // console.log(sale);
-      saleEmailQueue.push(sale);
+      createSale(newTenders[i]);
     } else if (
       newTenders[i].TransactionNumber != 0 &&
       newTenders[i].Amount < 0
     ) {
       // Refund
-      sale = await db.getTransaction(
-        "Refund",
-        newTenders[i].TransactionNumber,
-        newTenders[i].StoreID
-      );
-      refundEmailQueue.push(sale);
+      createRefund(newTenders[i]);
     } else if (
       newTenders[i].TransactionNumber == 0 &&
       newTenders[i].Amount < 0
     ) {
       // Layaway Payment Refund
-      let orderID = await db.getOrderID(newTenders[i].OrderHistoryID);
-      let layaway = await db.getLayaway(orderID, newTenders[i].StoreID);
-      refundPaymentQueue.push(layaway);
+      createPaymentRefund(newTenders[i]);
       // console.log(layaway);
     } else if (newTenders[i].TransactionNumber == 0) {
       //Layaway Payment
@@ -112,24 +94,30 @@ async function startCheckTenders() {
       let layaway = await db.getLayaway(orderID, newTenders[i].StoreID);
       paymentEmailQueue.push(layaway);
     } else {
-      console.log("Not Catagorized");
+      createNotCatSale(newTenders[i]);
     }
   }
+
+  // Look for GN sale
+  checkForGNSale();
+
   // console.log("Sales: ", saleEmailQueue);
   // console.log(saleEmailQueue[0]);
-  fs.writeFileSync(
-    "./htmlTest.html",
-    email.buildSaleHTML(saleEmailQueue[0]),
-    "utf-8"
-  );
-  fs.writeFileSync(
-    "./saleExport.json",
-    JSON.stringify(saleEmailQueue[0]),
-    "utf-8"
-  );
+  // fs.writeFileSync(
+  //   "./htmlTest.html",
+  //   email.buildSaleHTML(saleEmailQueue[0]),
+  //   "utf-8"
+  // );
+  // fs.writeFileSync(
+  //   "./saleExport.json",
+  //   JSON.stringify(saleEmailQueue[0]),
+  //   "utf-8"
+  // );
   // console.log("Refunds: ", refundEmailQueue);
   // console.log("Payments: ", paymentEmailQueue);
   // console.log("Payment Refunds: ", refundPaymentQueue);
+
+  // console.log(gnSaleEmailQueue.length);
 }
 
 async function checkNewTenders(storeID) {
@@ -160,4 +148,71 @@ async function pre() {
 
 // test();
 
-async function test() {}
+async function test() {
+  let sale = await db.getTransaction("Sale", 31760, 229);
+  // fs.writeFileSync("./saleExport.json", JSON.stringify(sale), "utf-8");
+  let containsGN = false;
+  sale.transactionEntries.forEach(entry => {
+    if (entry.item.ItemLookupCode == "GN") {
+      containsGN = true;
+    }
+  });
+  if (containsGN) {
+    gnSaleEmailQueue.push(sale);
+  }
+  console.log(gnSaleEmailQueue.length);
+}
+
+async function createSale(newTender) {
+  let sale = await db.getTransaction(
+    "Sale",
+    newTender.TransactionNumber,
+    newTender.StoreID
+  );
+  // console.log(sale);
+  saleEmailQueue.push(sale);
+}
+
+async function createRefund(newTender) {
+  let sale = await db.getTransaction(
+    "Refund",
+    newTender.TransactionNumber,
+    newTender.StoreID
+  );
+  refundEmailQueue.push(sale);
+}
+
+async function createPaymentRefund(newTender) {
+  let orderID = await db.getOrderID(newTender.OrderHistoryID);
+  let layaway = await db.getLayaway(orderID, newTender.StoreID);
+  refundPaymentQueue.push(layaway);
+}
+
+async function createNotCatSale(newTender) {
+  console.log("Not Catagorized: ", newTender.TransactionNumber);
+
+  if (newTenders[i].TransactionNumber != 0) {
+    let sale = await db.getTransaction(
+      "Sale",
+      newTender.TransactionNumber,
+      newTender.StoreID
+    );
+    notCatQueue.push(sale);
+  }
+}
+
+async function checkForGNSale() {
+  // Look for GN sale
+  for (let i = 0; i < notCatQueue.length; i++) {
+    let containsGN = false;
+    for (let j = 0; j < notCatQueue[i].transactionEntries.length; j++) {
+      if (notCatQueue[i].transactionEntries[j].item.ItemLookupCode == "GN") {
+        containsGN = true;
+      }
+    }
+    console.log(containsGN);
+    if (containsGN == true) {
+      gnSaleEmailQueue.push(notCatQueue[i]);
+    }
+  }
+}

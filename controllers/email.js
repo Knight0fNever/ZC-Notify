@@ -298,6 +298,9 @@ function getHTMLTemplate(currentSale) {
                     "en-US",
                     options
                   )}
+                  <br><strong>Time: </strong>${currentSale.transactionDate.toLocaleTimeString(
+                    "en-US"
+                  )}
                   <br><strong>Cashier: </strong>${currentSale.cashierName}
                 </td>
               </tr>
