@@ -2,9 +2,6 @@ const sql = require("mssql");
 const fs = require("fs");
 
 let Sale = require("../models/sale");
-let Layaway = require("../models/layaway");
-const Customer = require("../models/customer");
-const Address = require("../models/address");
 
 const config = JSON.parse(fs.readFileSync("./dbconfig.json", "utf8"));
 const storeConfig = JSON.parse(fs.readFileSync("./storeConfig.json", "utf8"));
@@ -87,6 +84,51 @@ async function getTenders(transactionNumber, storeId) {
   }
 }
 
+async function getTenderByID(tenderID) {
+  let query = `SELECT * FROM TenderEntry
+  WHERE ID = ${tenderID}`;
+  const pool = new sql.ConnectionPool(config[0]);
+  pool.on("error", err => {
+    console.log("SQL Error: ", err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+
+    return result.recordset[0];
+  } catch (err) {
+    console.log("Query Error: ", err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
+async function getLastTenderByOrder(orderID, storeID) {
+  let query = `SELECT TOP 1 TenderEntry.* FROM TenderEntry
+LEFT JOIN OrderHistory ON TenderEntry.OrderHistoryID = OrderHistory.ID AND TenderEntry.StoreID = OrderHistory.StoreID
+LEFT JOIN [Order] ON OrderHistory.OrderID = [Order].ID AND OrderHistory.StoreID = [Order].StoreID
+WHERE [Order].ID = ${orderID} AND [Order].StoreID = ${storeID}
+ORDER BY ID DESC`;
+  const pool = new sql.ConnectionPool(config[0]);
+  pool.on("error", err => {
+    console.log("SQL Error: ", err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+
+    return result.recordset[0];
+  } catch (err) {
+    console.log("Query Error: ", err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
 async function getTransaction(transactionType, transactionNumber, storeId) {
   let query = `SELECT ShipToID, [Time], CustomerID, Cashier.Name as 'Cashier', [Total], SalesTax, Comment, ReferenceNumber, ShipToID, Store.Name as 'Store', RecallID, Store.Address1 as 'StoreAddress', Store.City as 'StoreCity', Store.[State] as 'StoreState', Store.Zip as 'StoreZip'
   FROM [Transaction] 
@@ -103,7 +145,8 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
     await pool.connect();
     let result = await pool.request().query(query);
     // console.log(result.recordset[0]);
-    saleResult = new Sale(transactionType, transactionNumber, storeId);
+    // saleResult = new Sale(transactionType, transactionNumber, storeId);
+    let saleResult = result.recordset[0];
     let recallId = result.recordset[0].RecallID;
     let saleTotal = result.recordset[0].Total;
 
@@ -119,39 +162,40 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
     } else {
       saleResult.logo = "";
     }
-    saleResult.storeName = result.recordset[0].Store;
-    saleResult.storeAddress = result.recordset[0].StoreAddress;
-    saleResult.storeCity = result.recordset[0].StoreCity;
-    saleResult.storeState = result.recordset[0].StoreState;
-    saleResult.storeZip = result.recordset[0].StoreZip;
-    saleResult.cashierName = result.recordset[0].Cashier;
-    saleResult.store = await getStoreInfo(storeId);
-    saleResult.transactionDate = result.recordset[0].Time;
-    saleResult.total = result.recordset[0].Total;
-    saleResult.salesTax = result.recordset[0].SalesTax;
-    saleResult.transactionEntries = await getTransactionEntries(
+    saleResult.TransactionNumber = transactionNumber;
+    // saleResult.storeName = result.recordset[0].Store;
+    // saleResult.storeAddress = result.recordset[0].StoreAddress;
+    // saleResult.storeCity = result.recordset[0].StoreCity;
+    // saleResult.storeState = result.recordset[0].StoreState;
+    // saleResult.storeZip = result.recordset[0].StoreZip;
+    // saleResult.cashierName = result.recordset[0].Cashier;
+    saleResult.Store = await getStoreInfo(storeId);
+    // saleResult.transactionDate = result.recordset[0].Time;
+    // saleResult.total = result.recordset[0].Total;
+    // saleResult.salesTax = result.recordset[0].SalesTax;
+    saleResult.TransactionEntries = await getTransactionEntries(
       transactionNumber,
       storeId
     );
-    saleResult.totalQty = getSaleSum(saleResult.transactionEntries);
+    saleResult.TotalQty = getSaleSum(saleResult.TransactionEntries);
     // console.log(saleResult.totalQty);
-    saleResult.transactionEntries = await getItems(
-      saleResult.transactionEntries
+    saleResult.TransactionEntries = await getItems(
+      saleResult.TransactionEntries
     );
-    saleResult.totalLot = await calculateLot(saleResult.transactionEntries);
-    saleResult.comment = result.recordset[0].Comment;
-    saleResult.customerID = result.recordset[0].CustomerID;
+    saleResult.TotalLot = await calculateLot(saleResult.TransactionEntries);
+    // saleResult.Comment = result.recordset[0].Comment;
+    // saleResult.customerID = result.recordset[0].CustomerID;
     if (result.recordset[0].CustomerID != 0) {
-      saleResult.customer = await getCustomer(saleResult.customerID);
+      saleResult.Customer = await getCustomer(saleResult.CustomerID);
     }
     if (result.recordset[0].ShipToID[0] != 0) {
-      saleResult.customer.shippingAddress = await getShippingAddress(
+      saleResult.Customer.ShippingAddress = await getShippingAddress(
         result.recordset[0].ShipToID[0]
       );
     }
-    saleResult.tenders = await getTenders(transactionNumber, storeId);
-    saleResult.referenceNumber = result.recordset[0].ReferenceNumber;
-    saleResult.recallID = result.recordset[0].RecallID;
+    saleResult.Tenders = await getTenders(transactionNumber, storeId);
+    // saleResult.referenceNumber = result.recordset[0].ReferenceNumber;
+    // saleResult.recallID = result.recordset[0].RecallID;
     // console.log(saleResult);
     // fs.writeFileSync("./saleExport.json", JSON.stringify(saleResult));
     return saleResult;
@@ -163,7 +207,8 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
   }
 }
 
-function getSaleSum(transactionEntries) {
+async function getSaleSum(transactionEntries) {
+  console.log("Entries:".transactionEntries);
   let total = 0;
   transactionEntries.forEach(entry => {
     total += entry.Quantity;
@@ -295,6 +340,9 @@ async function getItem(itemID) {
     await pool.connect();
     let result = await pool.request().query(query);
     // console.log(result.recordset[0]);
+    let item = result.recordset[0];
+    // console.log("Lot: ", getLot(result.recordset[0].SubDescription2));
+    item.Lot = await getLot(result.recordset[0].SubDescription2);
     return result.recordset[0];
   } catch (err) {
     console.log("Query Error: ", err);
@@ -310,14 +358,6 @@ async function getLot(lotString) {
     .substr(0, lotString.length - 2);
   // console.log(parseInt(result));
   return parseInt(result);
-}
-
-async function calculateLot(transactionEntries) {
-  let totalLot = 0;
-  transactionEntries.map(entry => {
-    totalLot += entry.lot * entry.Quantity;
-  });
-  return totalLot;
 }
 
 async function insertLatestTender(storeID, tenderID) {
@@ -396,7 +436,9 @@ async function getAllNewTenders(storeID, startTenderID) {
 }
 
 async function getOrderEntries(orderID, storeID) {
-  let query = `SELECT * FROM OrderEntry WHERE OrderEntry.OrderID = ${orderID} AND OrderEntry.StoreID = ${storeID}`;
+  let query = `SELECT OrderEntry.*, SalesRep.Name as 'SalesRep' FROM OrderEntry 
+  LEFT JOIN SalesRep ON OrderEntry.SalesRepID = SalesRep.ID AND OrderEntry.StoreID = SalesRep.StoreID
+  WHERE OrderEntry.OrderID = ${orderID} AND OrderEntry.StoreID = ${storeID}`;
   const pool = new sql.ConnectionPool(config[0]);
   pool.on("error", err => {
     console.log("SQL Error: ", err);
@@ -415,7 +457,10 @@ async function getOrderEntries(orderID, storeID) {
 }
 
 async function getLayaway(orderID, storeID) {
-  let query = "SELECT * FROM [Order] WHERE ID = " + orderID;
+  let query = `SELECT [Order].*, Cashier.Name as 'Cashier' FROM [Order]
+  LEFT JOIN Cashier ON [Order].CashierID = Cashier.ID AND [Order].StoreID = Cashier.StoreID
+    WHERE [Order].ID = ${orderID} AND [Order].StoreID = ${storeID}`;
+
   const pool = new sql.ConnectionPool(config[0]);
   pool.on("error", err => {
     console.log("SQL Error: ", err);
@@ -427,10 +472,29 @@ async function getLayaway(orderID, storeID) {
     let order = result.recordset[0];
     // console.log(order);
     // let orderID = order.ID;
+    if (storeID == 229) {
+      order.logo = storeConfig[0].logo;
+    } else if (storeID == 213) {
+      order.logo = storeConfig[1].logo;
+    } else if (storeID == 223) {
+      order.logo = storeConfig[2].logo;
+    } else if (storeID == 1018) {
+      order.logo = storeConfig[3].logo;
+    } else {
+      order.logo = "";
+    }
+    order.Tenders = await getLastTenderByOrder(3184, 229);
     order.OrderEntries = await getOrderEntries(orderID, storeID);
+    order.TotalQty = await getSaleSumLayaway(order.OrderEntries);
+
+    // console.log(order.TotalQty);
+
     for (let i = 0; i < order.OrderEntries.length; i++) {
       order.OrderEntries[i].Item = await getItem(order.OrderEntries[i].ItemID);
     }
+    order.TotalLot = await calculateLotLayaway(order.OrderEntries);
+    order.Customer = await getCustomer(order.CustomerID);
+    order.Store = await getStoreInfo(storeID);
 
     // console.log(order);
     return order;
@@ -440,6 +504,94 @@ async function getLayaway(orderID, storeID) {
   } finally {
     pool.close();
   }
+}
+
+async function getLayawayPayment(orderID, storeID) {
+  // let query = `SELECT [Order].*, Cashier.Name as 'Cashier' FROM [Order]
+  // LEFT JOIN Cashier ON [Order].CashierID = Cashier.ID AND [Order].StoreID = Cashier.StoreID
+  //   WHERE [Order].ID = ${orderID} AND [Order].StoreID = ${storeID}`;
+
+  let query = `SELECT TOP 1 [Order].*, OrderHistory.ID as 'OrderHistoryID', Cashier.Name as 'Cashier' FROM [Order]
+LEFT JOIN OrderHistory ON [Order].ID = OrderHistory.OrderID AND [Order].StoreID = OrderHistory.StoreID
+LEFT JOIN Cashier ON OrderHistory.CashierID = Cashier.ID AND OrderHistory.StoreID = Cashier.StoreID
+WHERE [Order].ID = ${orderID} AND [Order].StoreID = ${storeID}
+ORDER BY OrderHistory.ID DESC`;
+  const pool = new sql.ConnectionPool(config[0]);
+  pool.on("error", err => {
+    console.log("SQL Error: ", err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+    let order = result.recordset[0];
+    // console.log(order);
+    // let orderID = order.ID;
+    if (storeID == 229) {
+      order.logo = storeConfig[0].logo;
+    } else if (storeID == 213) {
+      order.logo = storeConfig[1].logo;
+    } else if (storeID == 223) {
+      order.logo = storeConfig[2].logo;
+    } else if (storeID == 1018) {
+      order.logo = storeConfig[3].logo;
+    } else {
+      order.logo = "";
+    }
+    order.Tenders = await getLastTenderByOrder(3184, 229);
+    order.OrderEntries = await getOrderEntries(orderID, storeID);
+    order.TotalQty = await getSaleSumLayaway(order.OrderEntries);
+
+    // console.log(order.TotalQty);
+
+    for (let i = 0; i < order.OrderEntries.length; i++) {
+      order.OrderEntries[i].Item = await getItem(order.OrderEntries[i].ItemID);
+    }
+    order.TotalLot = await calculateLotLayaway(order.OrderEntries);
+    order.Customer = await getCustomer(order.CustomerID);
+    order.Store = await getStoreInfo(storeID);
+
+    // console.log(order);
+    return order;
+  } catch (err) {
+    console.log("Get Layaway Query Error: ", err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
+async function calculateLot(transactionEntries) {
+  let totalLot = 0;
+  transactionEntries.map(entry => {
+    totalLot += entry.lot * entry.Quantity;
+  });
+  return totalLot;
+}
+
+async function calculateLotLayaway(transactionEntries) {
+  let totalLot = 0;
+  transactionEntries.map(entry => {
+    console.log("Entry:", entry);
+    totalLot += entry.Item.Lot * entry.QuantityOnOrder;
+  });
+  return totalLot;
+}
+
+async function getSaleSum(transactionEntries) {
+  let total = 0;
+  transactionEntries.forEach(entry => {
+    total += entry.Quantity;
+  });
+  return total;
+}
+
+async function getSaleSumLayaway(transactionEntries) {
+  let total = 0;
+  transactionEntries.forEach(entry => {
+    total += entry.QuantityOnOrder;
+  });
+  return total;
 }
 
 async function getOrderID(orderHistoryID, storeId) {
@@ -480,7 +632,10 @@ module.exports = {
   updateLatestTender: updateLatestTender,
   getAllNewTenders: getAllNewTenders,
   getLayaway: getLayaway,
+  getLayawayPayment: getLayawayPayment,
   getOrderEntries: getOrderEntries,
   getOrderID: getOrderID,
-  getStoreInfo: getStoreInfo
+  getStoreInfo: getStoreInfo,
+  getTenderByID: getTenderByID,
+  getLastTenderByOrder: getLastTenderByOrder
 };

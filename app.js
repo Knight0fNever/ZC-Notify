@@ -10,8 +10,8 @@ const Tenders = require("./controllers/tenders");
 let date = new Date();
 
 // ---- STEPS ----
-// 1. Check for dbconfig.json file.
-//   a. If running.json is blank or doesn't exist, console.log warning. EXIT.
+// 1. Check for lastCheckTender entry in AWS DB.
+//   a. If entry does not exist. Create entry and EXIT.
 //   b. Else move to step 2.
 // 2. Check Tender table for new Tender
 //   a. If new Tender(s) exist, move to step 3.
@@ -26,13 +26,14 @@ let date = new Date();
 // 5. Iterate through send queue and send each email.
 // 6. EXIT.
 
-let minutes = 0.1;
-let the_interval = minutes * 60 * 1000;
-setInterval(function() {
-  pre();
-  startCheckTenders();
-  // email();
-}, the_interval);
+// let minutes = 0.1;
+// let the_interval = minutes * 60 * 1000;
+// setInterval(function() {
+//   pre();
+//   startCheckTenders();
+//   createEmails();
+//   sendEmails();
+// }, the_interval);
 
 let saleEmailQueue = [];
 let newLayawayEmailQueue = [];
@@ -41,9 +42,6 @@ let refundPaymentQueue = [];
 let gnSaleEmailQueue = [];
 let refundEmailQueue = [];
 let notCatQueue = [];
-
-// 1. Check for lastCheckTender entry in AWS DB.
-// pre();
 
 async function startCheckTenders() {
   // 2. Check Tender table for new Tender
@@ -134,33 +132,41 @@ async function checkNewTenders(storeID) {
   return result;
 }
 
-function end() {}
+function end() {
+  console.log("No previous tender entried found in AWS DB. Created them.");
+}
 
 async function pre() {
   for (let i = 0; i < storeConfig.length; i++) {
     let latestTender = await db.getLatestTender(storeConfig[i].storeID, 1);
     if (latestTender == null) {
       let updatedTender = await db.getLatestTender(storeConfig[i].storeID, 0);
-      await db.insertLatestTender(storeConfig[i].storeID, updatedTender);
+      await db
+        .insertLatestTender(storeConfig[i].storeID, updatedTender)
+        .then(() => {
+          end();
+        });
     }
   }
 }
 
-// test();
+function sendEmails() {}
+
+function createEmails() {}
+
+test();
 
 async function test() {
-  let sale = await db.getTransaction("Sale", 31760, 229);
-  // fs.writeFileSync("./saleExport.json", JSON.stringify(sale), "utf-8");
-  let containsGN = false;
-  sale.transactionEntries.forEach(entry => {
-    if (entry.item.ItemLookupCode == "GN") {
-      containsGN = true;
-    }
-  });
-  if (containsGN) {
-    gnSaleEmailQueue.push(sale);
-  }
-  console.log(gnSaleEmailQueue.length);
+  // let sale = await db.getTransaction("Sale", 31848, 229);
+
+  let payment = await db.getLayawayPayment(3184, 229);
+  // console.log(payment);
+  // fs.writeFileSync("./layawayExport.json", JSON.stringify(payment), "utf-8");
+  fs.writeFileSync(
+    "./htmlTest.html",
+    email.buildPaymentHTML(payment, 229),
+    "utf-8"
+  );
 }
 
 async function createSale(newTender) {

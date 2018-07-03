@@ -59,7 +59,7 @@ function buildTenders(tenders) {
                   </td>
                   <td colspan="6" style="padding: 5px 5px 20px;" align="right" valign="top"></td>
                   <td style="padding: 5px 5px 20px;" align="right" valign="middle">
-                    $${tender.Amount.toFixed(2)}
+                    $${tender.Amount}
                   </td>
                 </tr>`;
     });
@@ -70,7 +70,7 @@ function buildTenders(tenders) {
                   </td>
                   <td colspan="6" style="padding: 5px 5px 20px;" align="right" valign="top"></td>
                   <td style="padding: 5px 5px 20px;" align="right" valign="middle">
-                    $${tenders.Amount.toFixed(2)}
+                    $${tenders.Amount}
                   </td>
                 </tr>`;
   }
@@ -85,6 +85,7 @@ function buildTenders(tenders) {
 }
 
 function buildCustomer(customer) {
+  // console.log(customer);
   let currentCustomer = `<!-- Customer Info -->
   `;
 
@@ -123,11 +124,99 @@ function buildCustomer(customer) {
   if (Object.keys(customer).length === 0 && customer.constructor === Object) {
     return "";
   }
-
+  // console.log("Returned Customer");
   return currentCustomer;
 }
 
 function buildItemRows(transactionEntries) {
+  let header = `<tr>
+          <td colspan="8" style="padding: 0;" valign="top">
+            <table cellpadding="0" cellspacing="0" style="width: 100%; line-height: inherit; text-align: left;">
+              <tbody>
+                <tr>
+                  <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">
+                    SKU
+                  </td>
+                  <td style="min-width: 20%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">Description</td>
+                  <td style="min-width: 15%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">Extended Description</td>
+                  <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">Quantity</td>
+                  <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">Price</td>
+                  <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">Tax</td>
+                  <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">Lot</td>
+                  <td style="min-width: 12%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                    align="center" bgcolor="#eee" valign="middle">
+                    Sales Rep
+                  </td>
+                </tr>
+
+      `;
+
+  let result = header;
+
+  if (Array.isArray(transactionEntries)) {
+    transactionEntries.forEach(entry => {
+      result += `<tr>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">${entry.Item.ItemLookupCode}</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">
+                    ${entry.Item.Description}
+                  </td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">${entry.Item.ExtendedDescription}</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">${entry.Quantity}</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">
+                    $${entry.Price}
+                  </td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">$${entry.SalesTax}</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">$${entry.Lot}</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="middle">${entry.SalesRep}</td>
+                </tr>
+
+      `;
+    });
+  } else {
+    result += `<tr>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="top">${entry.item.ItemLookupCode}</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="top">
+                    ${entry.item.Description}
+                  </td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="top">${entry.item.ExtendedDescription}</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="top">${entry.Quantity}</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="top">
+                    $${entry.Price}
+                  </td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="top">$${entry.SalesTax}</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="top">$${entry.lot}</td>
+                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                    valign="top">${entry.SalesRep}</td>
+                </tr>
+
+      `;
+  }
+  return result;
+}
+
+function buildItemRowsLayaway(orderEntries) {
   let header = `<tr>
           <td colspan="8" style="padding: 0;" valign="top">
             <table cellpadding="0" cellspacing="0" style="width: 100%; line-height: inherit; text-align: left;">
@@ -159,27 +248,30 @@ function buildItemRows(transactionEntries) {
 
   let result = header;
 
-  if (Array.isArray(transactionEntries)) {
-    transactionEntries.forEach(entry => {
+  // console.log("Order Entries: ", orderEntries);
+
+  if (Array.isArray(orderEntries)) {
+    orderEntries.forEach(entry => {
       result += `<tr>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="middle">${entry.item.ItemLookupCode}</td>
+                    valign="middle">${entry.Item.ItemLookupCode}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">
-                    ${entry.item.Description}
+                    ${entry.Item.Description}
                   </td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="middle">${entry.item.ExtendedDescription}</td>
+                    valign="middle">${entry.Item.ExtendedDescription}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="middle">${entry.Quantity}</td>
+                    valign="middle">${entry.QuantityOnOrder}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">
-                    $${entry.Price.toFixed(2)}
+                    $${entry.Price}
                   </td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="middle">$${entry.SalesTax.toFixed(2)}</td>
+                    valign="middle"></td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="middle">$${entry.lot.toFixed(2)}</td>
+                    valign="middle">$${entry.Item.Lot}
+                    </td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">${entry.SalesRep}</td>
                 </tr>
@@ -189,25 +281,25 @@ function buildItemRows(transactionEntries) {
   } else {
     result += `<tr>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="top">${entry.item.ItemLookupCode}</td>
+                    valign="top">${orderEntries.Item.ItemLookupCode}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">
-                    ${entry.item.Description}
+                    ${orderEntries.Item.Description}
                   </td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="top">${entry.item.ExtendedDescription}</td>
+                    valign="top">${orderEntries.Item.ExtendedDescription}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="top">${entry.Quantity}</td>
+                    valign="top">${orderEntries.QuantityOnOrder}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">
-                    $${entry.Price.toFixed(2)}
+                    $${orderEntries.Price}
                   </td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="top">$${entry.SalesTax.toFixed(2)}</td>
+                    valign="top"></td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="top">$${entry.lot.toFixed(2)}</td>
+                    valign="top">$${orderEntries.Item.Lot}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="top">${entry.SalesRep}</td>
+                    valign="top">${orderEntries.SalesRep}</td>
                 </tr>
       
       `;
@@ -224,19 +316,19 @@ function buildTotals(currentSale) {
                   </td>
                   <!-- Quantity Total -->
                   <td style="font-weight: bold; padding: 5px;" align="center" valign="top">
-                    ${currentSale.totalQty}
+                    ${currentSale.TotalQty}
                   </td>
                   <!-- Sales Total -->
                   <td style="font-weight: bold; padding: 5px;" align="center" valign="top">
-                    $${(currentSale.total - currentSale.salesTax).toFixed(2)}
+                    $${currentSale.Total}
                   </td>
                   <!-- Tax Total -->
                   <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">
-                    $${currentSale.salesTax.toFixed(2)}
+                    
                   </td>
-                  <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">$${currentSale.totalLot.toFixed(
-                    2
-                  )}</td>
+                  <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">$${
+                    currentSale.TotalLot
+                  }</td>
                   <td style="font-weight: bold; padding: 5px;" align="center"; valign="top"></td>
                 </tr>`;
 
@@ -244,6 +336,7 @@ function buildTotals(currentSale) {
 }
 
 function getHTMLTemplate(currentSale) {
+  // console.log(currentSale);
   let logo = "";
 
   var options = {
@@ -253,13 +346,13 @@ function getHTMLTemplate(currentSale) {
     day: "numeric"
   };
 
-  let currentCustomer = buildCustomer(currentSale.customer);
+  let currentCustomer = buildCustomer(currentSale.Customer);
   return `<html>
 
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta charset="utf-8">
-    <title>A simple, clean, and responsive HTML invoice template</title>
+    <title></title>
 
 
     <style>
@@ -293,15 +386,17 @@ function getHTMLTemplate(currentSale) {
                 </td>
                 <td colspan="6" style="padding: 5px 5px 20px;" align="right" valign="top"></td>
                 <td style="padding: 5px 5px 20px;" align="right" valign="top">
-                  <strong>Transaction #: </strong>${currentSale.transNumber}
-                  <br><strong>Date: </strong>${currentSale.transactionDate.toLocaleDateString(
+                  <strong>Transaction #: </strong>${
+                    currentSale.TransactionNumber
+                  }
+                  <br><strong>Date: </strong>${currentSale.Time.toLocaleDateString(
                     "en-US",
                     options
                   )}
-                  <br><strong>Time: </strong>${currentSale.transactionDate.toLocaleTimeString(
+                  <br><strong>Time: </strong>${currentSale.Time.toLocaleTimeString(
                     "en-US"
                   )}
-                  <br><strong>Cashier: </strong>${currentSale.cashierName}
+                  <br><strong>Cashier: </strong>${currentSale.Cashier}
                 </td>
               </tr>
             </table>
@@ -313,12 +408,12 @@ function getHTMLTemplate(currentSale) {
             <table style="width: 100%; line-height: inherit; text-align: left;">
               <tr>
                 <td style="padding: 5px 5px 40px;" valign="top">
-                  ${currentSale.storeName}
-                  <br>${currentSale.storeAddress}
+                  ${currentSale.Store.Name}
+                  <br>${currentSale.Store.Address1}
                   <br> ${
-                    currentSale.storeCity
-                  }, ${currentSale.storeState.toUpperCase()} ${
-    currentSale.storeZip
+                    currentSale.Store.City
+                  }, ${currentSale.Store.State.toUpperCase()} ${
+    currentSale.Store.Zip
   }
                 </td>
                 <td colspan="6" style="padding: 5px 5px 40px;" align="right" valign="top"></td>
@@ -350,27 +445,27 @@ function buildSaleHTML(sale, storeID) {
   let html = getHTMLTemplate(currentSale);
 
   if (
-    Object.keys(currentSale.tenders).length != 0 &&
-    currentSale.tenders.constructor === Object
+    Object.keys(currentSale.Tenders).length != 0 &&
+    currentSale.Tenders.constructor === Object
   ) {
-    html += buildTenders(currentSale.tenders) + "\n";
+    html += buildTenders(currentSale.Tenders) + "\n";
   }
 
-  if (currentSale.transactionEntries.length > 0) {
-    html += buildItemRows(currentSale.transactionEntries);
+  if (currentSale.TransactionEntries.length > 0) {
+    html += buildItemRows(currentSale.TransactionEntries);
   }
 
   html += buildTotals(currentSale);
 
   let comment = "";
 
-  if (currentSale.comment != "") {
+  if (currentSale.Comment != "") {
     comment = `<tr>
           <td>
             <table>
               <tr>
                 <td style="padding-top: 50px;">
-                  Transaction Comment: ${currentSale.comment}
+                  Transaction Comment: ${currentSale.Comment}
                 </td>
               </tr>
             </table>
@@ -394,7 +489,158 @@ function buildSaleHTML(sale, storeID) {
   );
 }
 
-function buildPaymentHTML(layaway, storeID) {}
+function getHTMLTemplateLayaway(currentSale) {
+  // console.log(currentSale);
+  let logo = "";
+
+  var options = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  };
+
+  let currentCustomer = buildCustomer(currentSale.Customer);
+  return `<html>
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta charset="utf-8">
+    <title></title>
+
+
+    <style>
+      @media only screen and (max-width: 600px) {
+        .invoice-box table tr.top table td {
+          width: 100%;
+          display: block;
+          text-align: center;
+        }
+        .invoice-box table tr.information table td {
+          width: 100%;
+          display: block;
+          text-align: center;
+        }
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <div style="max-width: 1000px; box-shadow: 0 0 10px rgba(0, 0, 0, .15); font-size: 16px; line-height: 24px; font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; color: #555; margin: auto; padding: 30px; border: 1px solid #eee;">
+      <table cellpadding="0" cellspacing="0" style="width: 100%; line-height: inherit; text-align: left;">
+        <tr>
+          <td colspan="8" style="padding: 5px;" valign="top">
+            <table style="width: 100%; line-height: inherit; text-align: left;">
+              <tr>
+                <td style="font-size: 45px; line-height: 45px; color: #333; padding: 5px 5px 20px;" valign="top">
+                  <img src="${
+                    currentSale.logo
+                  }" style="width: 100%; max-width: 140px;">
+                </td>
+                <td colspan="6" style="padding: 5px 5px 20px;" align="right" valign="top"></td>
+                <td style="padding: 5px 5px 20px;" align="right" valign="top">
+                  <strong>Order #: </strong>${currentSale.ID}
+                  <br><strong>Date: </strong>${currentSale.Time.toLocaleDateString(
+                    "en-US",
+                    options
+                  )}
+                  <br><strong>Time: </strong>${currentSale.Time.toLocaleTimeString(
+                    "en-US"
+                  )}
+                  <br><strong>Cashier: </strong>${currentSale.Cashier}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="8" style="padding: 5px;" valign="top">
+            <table style="width: 100%; line-height: inherit; text-align: left;">
+              <tr>
+                <td style="padding: 5px 5px 40px;" valign="top">
+                  ${currentSale.Store.Name}
+                  <br>${currentSale.Store.Address1}
+                  <br> ${
+                    currentSale.Store.City
+                  }, ${currentSale.Store.State.toUpperCase()} ${
+    currentSale.Store.Zip
+  }
+                </td>
+                <td colspan="6" style="padding: 5px 5px 40px;" align="right" valign="top"></td>
+                <td style="padding: 5px 5px 40px;" align="right" valign="top">
+                  ${currentCustomer}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+              `;
+}
+
+function buildPaymentHTML(layaway, storeID) {
+  let currentLayaway = layaway;
+  // console.log(currentLayaway);
+  let currentStoreID = storeID;
+  let logo = "";
+
+  if (currentStoreID == 229) {
+    logo = storeConfig[0].logo;
+  } else if (currentStoreID == 213) {
+    logo = storeConfig[1].logo;
+  } else if (currentStoreID == 223) {
+    logo = storeConfig[2].logo;
+  } else if (currentStoreID == 1018) {
+    logo = storeConfig[3].logo;
+  }
+
+  let html = getHTMLTemplateLayaway(currentLayaway);
+
+  if (
+    Object.keys(currentLayaway.Tenders).length != 0 &&
+    currentLayaway.Tenders.constructor === Object
+  ) {
+    html += buildTenders(currentLayaway.Tenders) + "\n";
+  }
+
+  if (currentLayaway.OrderEntries.length > 0) {
+    html += buildItemRowsLayaway(currentLayaway.OrderEntries);
+  }
+
+  html += buildTotals(currentLayaway);
+
+  let comment = "";
+
+  if (currentLayaway.Comment != "") {
+    comment = `<tr>
+          <td>
+            <table>
+              <tr>
+                <td style="padding-top: 50px;">
+                  Comment: ${currentLayaway.Comment}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>`;
+  }
+
+  html += `</tbody>
+            </table>
+          </td>
+        </tr>`;
+
+  return (
+    html +
+    ` ${comment}  
+      </table>
+    </div>
+  </body>
+
+</html>`
+  );
+}
 
 function buildLayawayHTML(layaway, storeID) {}
 
