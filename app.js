@@ -25,6 +25,14 @@ let date = new Date();
 // 4. Iterate through email queues and generate emails.
 // 5. EXIT.
 
+let saleEmailQueue = [];
+let newLayawayEmailQueue = [];
+let paymentEmailQueue = [];
+let refundPaymentQueue = [];
+let gnSaleEmailQueue = [];
+let refundEmailQueue = [];
+let notCatQueue = [];
+
 let minutes = 1.0;
 let the_interval = minutes * 60 * 1000;
 var options = {
@@ -43,15 +51,14 @@ setInterval(async function() {
     new Date().toLocaleDateString("en-us", options),
     new Date().toLocaleTimeString("en-us", options)
   );
+  saleEmailQueue = [];
+  newLayawayEmailQueue = [];
+  paymentEmailQueue = [];
+  refundPaymentQueue = [];
+  gnSaleEmailQueue = [];
+  refundEmailQueue = [];
+  notCatQueue = [];
 }, the_interval);
-
-let saleEmailQueue = [];
-let newLayawayEmailQueue = [];
-let paymentEmailQueue = [];
-let refundPaymentQueue = [];
-let gnSaleEmailQueue = [];
-let refundEmailQueue = [];
-let notCatQueue = [];
 
 function sendEmails() {
   // console.log("Sales: ", saleEmailQueue.length);
