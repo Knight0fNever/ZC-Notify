@@ -19,7 +19,7 @@ async function email(html) {
   var mailOptions = {
     from: emailConfig.from,
     to: emailConfig.to,
-    subject: "Sending Email using Node.js",
+    subject: "Testing ZC Email",
     html: html
   };
 
