@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 const emailConfig = JSON.parse(fs.readFileSync("./emailConfig.json", "utf8"));
 const storeConfig = JSON.parse(fs.readFileSync("./storeConfig.json", "utf8"));
 
-async function email(html) {
+async function email(html, typeOfEmail, storeID) {
   var transporter = nodemailer.createTransport({
     auth: {
       user: emailConfig.userName,
@@ -16,12 +16,37 @@ async function email(html) {
     secure: true
   });
 
+  let store = "";
+  if (storeID == 229) {
+    store = "Hermitage";
+  } else if (storeID == 213) {
+    store = "ZK";
+  } else if (storeID == 223) {
+    store = "Eden";
+  } else if (storeID == 1018) {
+    store = "Royal";
+  }
+
   var mailOptions = {
     from: emailConfig.from,
     to: emailConfig.to,
-    subject: "Testing ZC Email",
+    subject: "",
     html: html
   };
+
+  if (typeOfEmail == "Sale") {
+    mailOptions.subject = `New Sale in ${store}`;
+  } else if (typeOfEmail == "Payment") {
+    mailOptions.subject = `New Payment in ${store}`;
+  } else if (typeOfEmail == "Layaway") {
+    mailOptions.subject = `New Layaway in ${store}`;
+  } else if (typeOfEmail == "Refund") {
+    mailOptions.subject = `Refund in ${store}`;
+  } else if (typeOfEmail == "Payment Refund") {
+    mailOptions.subject = `Payment Refund in ${store}`;
+  } else if (typeOfEmail == "GN Sale") {
+    mailOptions.subject = `GN Sold in ${store}`;
+  }
 
   transporter.sendMail(mailOptions, function(error, info) {
     if (error) {
@@ -190,13 +215,13 @@ function buildItemRows(transactionEntries) {
   } else {
     result += `<tr>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="top">${entry.item.ItemLookupCode}</td>
+                    valign="top">${entry.Item.ItemLookupCode}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">
-                    ${entry.item.Description}
+                    ${entry.Item.Description}
                   </td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="top">${entry.item.ExtendedDescription}</td>
+                    valign="top">${entry.Item.ExtendedDescription}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">${entry.Quantity}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
@@ -226,7 +251,7 @@ function buildItemRowsLayaway(orderEntries) {
                     align="center" bgcolor="#eee" valign="middle">
                     SKU
                   </td>
-                  <td style="min-width: 20%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
+                  <td colspan="2" style="min-width: 28%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
                     align="center" bgcolor="#eee" valign="middle">Description</td>
                   <td style="min-width: 15%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
                     align="center" bgcolor="#eee" valign="middle">Extended Description</td>
@@ -234,8 +259,6 @@ function buildItemRowsLayaway(orderEntries) {
                     align="center" bgcolor="#eee" valign="middle">Quantity</td>
                   <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
                     align="center" bgcolor="#eee" valign="middle">Price</td>
-                  <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
-                    align="center" bgcolor="#eee" valign="middle">Tax</td>
                   <td style="min-width: 8%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
                     align="center" bgcolor="#eee" valign="middle">Lot</td>
                   <td style="min-width: 12%; border-bottom-width: 1px; border-bottom-color: #ddd; border-bottom-style: solid; font-weight: bold; padding: 5px;"
@@ -255,11 +278,11 @@ function buildItemRowsLayaway(orderEntries) {
       result += `<tr>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">${entry.Item.ItemLookupCode}</td>
-                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                  <td colspan="2" style="min-width: 28%; border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">
                     ${entry.Item.Description}
                   </td>
-                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                  <td style="min-width: 15%; border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">${entry.Item.ExtendedDescription}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">${entry.QuantityOnOrder}</td>
@@ -267,8 +290,6 @@ function buildItemRowsLayaway(orderEntries) {
                     valign="middle">
                     $${entry.Price}
                   </td>
-                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="middle"></td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">$${entry.Item.Lot}
                     </td>
@@ -282,11 +303,11 @@ function buildItemRowsLayaway(orderEntries) {
     result += `<tr>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">${orderEntries.Item.ItemLookupCode}</td>
-                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                  <td colspan="2" style="min-width: 28%; border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">
                     ${orderEntries.Item.Description}
                   </td>
-                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
+                  <td style="min-width: 15%; border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">${orderEntries.Item.ExtendedDescription}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">${orderEntries.QuantityOnOrder}</td>
@@ -295,8 +316,6 @@ function buildItemRowsLayaway(orderEntries) {
                     $${orderEntries.Price}
                   </td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="top"></td>
-                  <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">$${orderEntries.Item.Lot}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">${orderEntries.SalesRep}</td>
@@ -304,6 +323,30 @@ function buildItemRowsLayaway(orderEntries) {
       
       `;
   }
+  return result;
+}
+
+function buildTotalsLayaway(currentLayaway) {
+  let result = `
+  <!-- Totals -->
+      <tr>
+                  <td colspan="4" style="padding: 5px;" align="right" valign="top">
+                    <strong style="margin-top: 5px;">Total: </strong>
+                  </td>
+                  <!-- Quantity Total -->
+                  <td style="font-weight: bold; padding: 5px;" align="center" valign="top">
+                    ${currentLayaway.TotalQty}
+                  </td>
+                  <!-- Sales Total -->
+                  <td style="font-weight: bold; padding: 5px;" align="center" valign="top">
+                    $${currentLayaway.Total}
+                  </td>
+                  <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">$${
+                    currentLayaway.TotalLot
+                  }</td>
+                  <td style="font-weight: bold; padding: 5px;" align="center"; valign="top"></td>
+                </tr>`;
+
   return result;
 }
 
@@ -324,7 +367,7 @@ function buildTotals(currentSale) {
                   </td>
                   <!-- Tax Total -->
                   <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">
-                    
+                    $${currentSale.SalesTax}
                   </td>
                   <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">$${
                     currentSale.TotalLot
@@ -346,7 +389,13 @@ function getHTMLTemplate(currentSale) {
     day: "numeric"
   };
 
-  let currentCustomer = buildCustomer(currentSale.Customer);
+  let currentCustomer = "";
+  if (currentSale.Customer != undefined) {
+    currentCustomer = buildCustomer(currentSale.Customer);
+  } else {
+    currentCustomer = "No Customer Selected";
+  }
+
   return `<html>
 
   <head>
@@ -449,6 +498,8 @@ function buildSaleHTML(sale, storeID) {
     currentSale.Tenders.constructor === Object
   ) {
     html += buildTenders(currentSale.Tenders) + "\n";
+  } else if (Array.isArray(currentSale.Tenders)) {
+    html += buildTenders(currentSale.Tenders) + "\n";
   }
 
   if (currentSale.TransactionEntries.length > 0) {
@@ -548,7 +599,7 @@ function getHTMLTemplateLayaway(currentSale) {
                   <br><strong>Time: </strong>${currentSale.Time.toLocaleTimeString(
                     "en-US"
                   )}
-                  <br><strong>Cashier: </strong>${currentSale.Cashier}
+                  
                 </td>
               </tr>
             </table>
@@ -608,7 +659,7 @@ function buildPaymentHTML(layaway, storeID) {
     html += buildItemRowsLayaway(currentLayaway.OrderEntries);
   }
 
-  html += buildTotals(currentLayaway);
+  html += buildTotalsLayaway(currentLayaway);
 
   let comment = "";
 
@@ -642,7 +693,68 @@ function buildPaymentHTML(layaway, storeID) {
   );
 }
 
-function buildLayawayHTML(layaway, storeID) {}
+function buildLayawayHTML(layaway, storeID) {
+  let currentLayaway = layaway;
+  // console.log(currentLayaway);
+  let currentStoreID = storeID;
+  let logo = "";
+
+  if (currentStoreID == 229) {
+    logo = storeConfig[0].logo;
+  } else if (currentStoreID == 213) {
+    logo = storeConfig[1].logo;
+  } else if (currentStoreID == 223) {
+    logo = storeConfig[2].logo;
+  } else if (currentStoreID == 1018) {
+    logo = storeConfig[3].logo;
+  }
+
+  let html = getHTMLTemplateLayaway(currentLayaway);
+
+  if (
+    Object.keys(currentLayaway.Tenders).length != 0 &&
+    currentLayaway.Tenders.constructor === Object
+  ) {
+    html += buildTenders(currentLayaway.Tenders) + "\n";
+  }
+
+  if (currentLayaway.OrderEntries.length > 0) {
+    html += buildItemRowsLayaway(currentLayaway.OrderEntries);
+  }
+
+  html += buildTotalsLayaway(currentLayaway);
+
+  let comment = "";
+
+  if (currentLayaway.Comment != "") {
+    comment = `<tr>
+          <td>
+            <table>
+              <tr>
+                <td style="padding-top: 50px;">
+                  Comment: ${currentLayaway.Comment}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>`;
+  }
+
+  html += `</tbody>
+            </table>
+          </td>
+        </tr>`;
+
+  return (
+    html +
+    ` ${comment}  
+      </table>
+    </div>
+  </body>
+
+</html>`
+  );
+}
 
 module.exports = {
   email: email,

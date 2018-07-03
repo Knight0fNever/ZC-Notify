@@ -74,8 +74,8 @@ async function getTenders(transactionNumber, storeId) {
   try {
     await pool.connect();
     let result = await pool.request().query(query);
-
-    return result.recordset[0];
+    // console.log(result.recordset);
+    return result.recordset;
   } catch (err) {
     console.log("Query Error: ", err);
     return { err: err };
@@ -163,28 +163,16 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
       saleResult.logo = "";
     }
     saleResult.TransactionNumber = transactionNumber;
-    // saleResult.storeName = result.recordset[0].Store;
-    // saleResult.storeAddress = result.recordset[0].StoreAddress;
-    // saleResult.storeCity = result.recordset[0].StoreCity;
-    // saleResult.storeState = result.recordset[0].StoreState;
-    // saleResult.storeZip = result.recordset[0].StoreZip;
-    // saleResult.cashierName = result.recordset[0].Cashier;
     saleResult.Store = await getStoreInfo(storeId);
-    // saleResult.transactionDate = result.recordset[0].Time;
-    // saleResult.total = result.recordset[0].Total;
-    // saleResult.salesTax = result.recordset[0].SalesTax;
     saleResult.TransactionEntries = await getTransactionEntries(
       transactionNumber,
       storeId
     );
-    saleResult.TotalQty = getSaleSum(saleResult.TransactionEntries);
-    // console.log(saleResult.totalQty);
+    saleResult.TotalQty = await getSaleSum(saleResult.TransactionEntries);
     saleResult.TransactionEntries = await getItems(
       saleResult.TransactionEntries
     );
     saleResult.TotalLot = await calculateLot(saleResult.TransactionEntries);
-    // saleResult.Comment = result.recordset[0].Comment;
-    // saleResult.customerID = result.recordset[0].CustomerID;
     if (result.recordset[0].CustomerID != 0) {
       saleResult.Customer = await getCustomer(saleResult.CustomerID);
     }
@@ -208,7 +196,7 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
 }
 
 async function getSaleSum(transactionEntries) {
-  console.log("Entries:".transactionEntries);
+  // console.log("Entries:".transactionEntries);
   let total = 0;
   transactionEntries.forEach(entry => {
     total += entry.Quantity;
@@ -318,9 +306,9 @@ async function getShippingAddress(shipToID) {
 async function getItems(transactionEntries) {
   let totalLot = 0;
   for (let i = 0; i < transactionEntries.length; i++) {
-    transactionEntries[i].item = await getItem(transactionEntries[i].ItemID);
-    transactionEntries[i].lot = await getLot(
-      transactionEntries[i].item.SubDescription2
+    transactionEntries[i].Item = await getItem(transactionEntries[i].ItemID);
+    transactionEntries[i].Lot = await getLot(
+      transactionEntries[i].Item.SubDescription2
     );
   }
   // console.log(transactionEntries);
@@ -457,8 +445,7 @@ async function getOrderEntries(orderID, storeID) {
 }
 
 async function getLayaway(orderID, storeID) {
-  let query = `SELECT [Order].*, Cashier.Name as 'Cashier' FROM [Order]
-  LEFT JOIN Cashier ON [Order].CashierID = Cashier.ID AND [Order].StoreID = Cashier.StoreID
+  let query = `SELECT * FROM [Order]
     WHERE [Order].ID = ${orderID} AND [Order].StoreID = ${storeID}`;
 
   const pool = new sql.ConnectionPool(config[0]);
@@ -564,7 +551,7 @@ ORDER BY OrderHistory.ID DESC`;
 async function calculateLot(transactionEntries) {
   let totalLot = 0;
   transactionEntries.map(entry => {
-    totalLot += entry.lot * entry.Quantity;
+    totalLot += entry.Lot * entry.Quantity;
   });
   return totalLot;
 }
@@ -572,7 +559,7 @@ async function calculateLot(transactionEntries) {
 async function calculateLotLayaway(transactionEntries) {
   let totalLot = 0;
   transactionEntries.map(entry => {
-    console.log("Entry:", entry);
+    // console.log("Entry:", entry);
     totalLot += entry.Item.Lot * entry.QuantityOnOrder;
   });
   return totalLot;
@@ -615,6 +602,48 @@ async function getOrderID(orderHistoryID, storeId) {
   }
 }
 
+async function getLastCheckedTime() {
+  let query = `SELECT TOP 1 lastCheckedTime FROM tenderEntries
+  ORDER BY lastCheckedTime DESC`;
+
+  const pool = new sql.ConnectionPool(config[1]);
+  pool.on("error", err => {
+    console.log("SQL Error: ", err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+    return result.recordset[0].lastCheckedTime;
+  } catch (err) {
+    console.log("Query Error:", err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
+async function getNewLayaways(lastCheckedTime) {
+  let query = `SELECT * FROM [Order]
+  WHERE [Time] > '${lastCheckedTime}' AND Closed = 0`;
+
+  const pool = new sql.ConnectionPool(config[0]);
+  pool.on("error", err => {
+    console.log("SQL Error: ", err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+    return result.recordset;
+  } catch (err) {
+    console.log("Query Error:", err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
 sql.on("error", err => {
   console.log("Server Error:", err);
 });
@@ -637,5 +666,7 @@ module.exports = {
   getOrderID: getOrderID,
   getStoreInfo: getStoreInfo,
   getTenderByID: getTenderByID,
-  getLastTenderByOrder: getLastTenderByOrder
+  getLastTenderByOrder: getLastTenderByOrder,
+  getLastCheckedTime: getLastCheckedTime,
+  getNewLayaways: getNewLayaways
 };
