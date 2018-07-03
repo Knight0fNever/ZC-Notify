@@ -22,9 +22,8 @@ let date = new Date();
 //   c. If tender is a Payment, add to Payment Email Queue.
 //   d. If tender is a GN Sale, add to GN Sale Email Queue.
 //   e. If tender is a refund, add to Refund Queue.
-// 4. Iterate through email queues and generate emails. Add each to Send Queue.
-// 5. Iterate through send queue and send each email.
-// 6. EXIT.
+// 4. Iterate through email queues and generate emails.
+// 5. EXIT.
 
 let minutes = 1.0;
 let the_interval = minutes * 60 * 1000;
