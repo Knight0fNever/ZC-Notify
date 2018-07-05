@@ -114,11 +114,14 @@ function buildCustomer(customer) {
   let currentCustomer = `<!-- Customer Info -->
   `;
 
-  if (customer.Company != "") {
-    currentCustomer += `
+  if (customer.Company != undefined) {
+    if (customer.Company != "") {
+      currentCustomer += `
     ${customer.Company}<br>
     `;
+    }
   }
+
   let address2 = "";
   if (customer.Address2 != "") {
     address2 = `
