@@ -1,10 +1,12 @@
-const sql = require("mssql");
-const fs = require("fs");
+const sql = require('mssql');
+const fs = require('fs');
 
-let Sale = require("../models/sale");
+let Sale = require('../models/sale');
 
-const config = JSON.parse(fs.readFileSync("./dbconfig.json", "utf8"));
-const storeConfig = JSON.parse(fs.readFileSync("./storeConfig.json", "utf8"));
+const config = JSON.parse(fs.readFileSync('./dbconfigTEST.json', 'utf8'));
+const storeConfig = JSON.parse(fs.readFileSync('./storeConfig.json', 'utf8'));
+
+let debug = false;
 
 // Return promise that resolves into latest tenderID. 0 for local, 1 for AWs
 async function getLatestTender(storeId, location) {
@@ -20,8 +22,8 @@ async function getLatestTender(storeId, location) {
       storeId;
   }
   const pool = new sql.ConnectionPool(config[location]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -29,7 +31,7 @@ async function getLatestTender(storeId, location) {
     let result = await pool.request().query(query);
     return result.recordset[0].tenderID;
   } catch (err) {
-    console.log("Query Error:", err);
+    console.log('Query Error:', err);
     return { err: err };
   } finally {
     pool.close();
@@ -40,11 +42,11 @@ async function getTenderEntry(tenderEntryID, storeId) {
   let query =
     "SELECT TenderEntry.ID as 'tenderID', TenderEntry.StoreID, TenderEntry.TransactionNumber, TenderEntry.[Description], TenderEntry.Amount, TenderEntry.OrderHistoryID FROM TenderEntry WHERE TenderEntry.ID = " +
     tenderEntryID +
-    " AND TenderEntry.StoreID = " +
+    ' AND TenderEntry.StoreID = ' +
     storeId;
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -53,7 +55,7 @@ async function getTenderEntry(tenderEntryID, storeId) {
 
     return result.recordset[0];
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -62,13 +64,13 @@ async function getTenderEntry(tenderEntryID, storeId) {
 
 async function getTenders(transactionNumber, storeId) {
   let query =
-    "SELECT * FROM TenderEntry WHERE TenderEntry.TransactionNumber = " +
+    'SELECT * FROM TenderEntry WHERE TenderEntry.TransactionNumber = ' +
     transactionNumber +
-    " AND TenderEntry.StoreID = " +
+    ' AND TenderEntry.StoreID = ' +
     storeId;
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -77,7 +79,7 @@ async function getTenders(transactionNumber, storeId) {
     // console.log(result.recordset);
     return result.recordset;
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -88,8 +90,8 @@ async function getTenderByID(tenderID) {
   let query = `SELECT * FROM TenderEntry
   WHERE ID = ${tenderID}`;
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -98,7 +100,7 @@ async function getTenderByID(tenderID) {
 
     return result.recordset[0];
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -112,8 +114,8 @@ LEFT JOIN [Order] ON OrderHistory.OrderID = [Order].ID AND OrderHistory.StoreID 
 WHERE [Order].ID = ${orderID} AND [Order].StoreID = ${storeID}
 ORDER BY ID DESC`;
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -122,7 +124,7 @@ ORDER BY ID DESC`;
 
     return result.recordset[0];
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -137,12 +139,13 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
   WHERE [Transaction].TransactionNumber = ${transactionNumber} AND [Transaction].StoreID = ${storeId}`;
 
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
     await pool.connect();
+    // console.log(query);
     let result = await pool.request().query(query);
     // console.log(result.recordset[0]);
     // saleResult = new Sale(transactionType, transactionNumber, storeId);
@@ -160,7 +163,7 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
     } else if (storeId == 1018) {
       saleResult.logo = storeConfig[3].logo;
     } else {
-      saleResult.logo = "";
+      saleResult.logo = '';
     }
     saleResult.TransactionNumber = transactionNumber;
     saleResult.Store = await getStoreInfo(storeId);
@@ -186,9 +189,12 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
     // saleResult.recallID = result.recordset[0].RecallID;
     // console.log(saleResult);
     // fs.writeFileSync("./saleExport.json", JSON.stringify(saleResult));
+    if (debug) {
+      console.log('getTransaction() successful');
+    }
     return saleResult;
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -216,8 +222,8 @@ async function getStoreInfo(storeID) {
   let query = `SELECT * FROM Store WHERE Store.ID = ${storeID}`;
 
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -225,10 +231,12 @@ async function getStoreInfo(storeID) {
     let result = await pool.request().query(query);
 
     let store = result.recordset[0];
-
+    if (debug) {
+      console.log('getStoreInfo() successful');
+    }
     return store;
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -237,20 +245,23 @@ async function getStoreInfo(storeID) {
 
 async function getCustomer(customerId) {
   let query =
-    "SELECT Customer.FirstName, Customer.LastName, Customer.Company, Customer.[Address], Customer.Address2, Customer.City, Customer.[State], Customer.Zip, Customer.Country, Customer.PhoneNumber, Customer.EmailAddress FROM Customer WHERE Customer.ID = " +
+    'SELECT Customer.FirstName, Customer.LastName, Customer.Company, Customer.[Address], Customer.Address2, Customer.City, Customer.[State], Customer.Zip, Customer.Country, Customer.PhoneNumber, Customer.EmailAddress FROM Customer WHERE Customer.ID = ' +
     customerId;
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
     await pool.connect();
     let result = await pool.request().query(query);
+    if (debug) {
+      console.log('getCustomer() successful');
+    }
 
     return result.recordset[0];
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return {};
   } finally {
     pool.close();
@@ -264,17 +275,20 @@ async function getTransactionEntries(transactionNumber, storeId) {
 
   // console.log(query);
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
     await pool.connect();
     let result = await pool.request().query(query);
-    // console.log(result.recordset);
+    if (debug) {
+      console.log('getTransactionEntries() successful');
+    }
+
     return result.recordset;
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -282,12 +296,12 @@ async function getTransactionEntries(transactionNumber, storeId) {
 }
 
 async function getShippingAddress(shipToID) {
-  let query = "SELECT * FROM ShipTo WHERE ShipTo.ID = " + shipToID;
+  let query = 'SELECT * FROM ShipTo WHERE ShipTo.ID = ' + shipToID;
 
   // console.log(query);
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -296,7 +310,7 @@ async function getShippingAddress(shipToID) {
     // console.log(result.recordset[0]);
     return result.recordset;
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -316,12 +330,12 @@ async function getItems(transactionEntries) {
 }
 
 async function getItem(itemID) {
-  let query = "SELECT * FROM Item WHERE Item.ID = " + itemID;
+  let query = 'SELECT * FROM Item WHERE Item.ID = ' + itemID;
 
   // console.log(query);
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -333,7 +347,7 @@ async function getItem(itemID) {
     item.Lot = await getLot(result.recordset[0].SubDescription2);
     return result.recordset[0];
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -350,16 +364,16 @@ async function getLot(lotString) {
 
 async function insertLatestTender(storeID, tenderID) {
   let query =
-    "INSERT INTO tenderEntries VALUES(" +
+    'INSERT INTO tenderEntries VALUES(' +
     storeID +
-    ", " +
+    ', ' +
     tenderID +
-    ", GETDATE())";
+    ', GETDATE())';
 
   // console.log(query);
   const pool = new sql.ConnectionPool(config[1]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -368,7 +382,7 @@ async function insertLatestTender(storeID, tenderID) {
     // console.log(result);
     // return result.recordset[0];
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -380,8 +394,8 @@ async function updateLatestTender(storeID, tenderID) {
 
   // console.log(query);
   const pool = new sql.ConnectionPool(config[1]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -390,7 +404,7 @@ async function updateLatestTender(storeID, tenderID) {
     // console.log(result);
     // return result.recordset[0];
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -399,15 +413,15 @@ async function updateLatestTender(storeID, tenderID) {
 
 async function getAllNewTenders(storeID, startTenderID) {
   let query =
-    "SELECT ID FROM TenderEntry WHERE StoreID = " +
+    'SELECT ID FROM TenderEntry WHERE StoreID = ' +
     storeID +
-    " AND ID > " +
+    ' AND ID > ' +
     startTenderID;
 
   // console.log(query);
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -416,7 +430,7 @@ async function getAllNewTenders(storeID, startTenderID) {
     // console.log(result.recordset[0]);
     return result.recordset;
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -428,8 +442,8 @@ async function getOrderEntries(orderID, storeID) {
   LEFT JOIN SalesRep ON OrderEntry.SalesRepID = SalesRep.ID AND OrderEntry.StoreID = SalesRep.StoreID
   WHERE OrderEntry.OrderID = ${orderID} AND OrderEntry.StoreID = ${storeID}`;
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -437,7 +451,7 @@ async function getOrderEntries(orderID, storeID) {
     let result = await pool.request().query(query);
     return result.recordset;
   } catch (err) {
-    console.log("Query Error: ", err);
+    console.log('Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -449,8 +463,8 @@ async function getLayaway(orderID, storeID) {
     WHERE [Order].ID = ${orderID} AND [Order].StoreID = ${storeID}`;
 
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -468,7 +482,7 @@ async function getLayaway(orderID, storeID) {
     } else if (storeID == 1018) {
       order.logo = storeConfig[3].logo;
     } else {
-      order.logo = "";
+      order.logo = '';
     }
     order.Tenders = await getLastTenderByOrder(3184, 229);
     order.OrderEntries = await getOrderEntries(orderID, storeID);
@@ -486,7 +500,7 @@ async function getLayaway(orderID, storeID) {
     // console.log(order);
     return order;
   } catch (err) {
-    console.log("Get Layaway Query Error: ", err);
+    console.log('Get Layaway Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -504,8 +518,8 @@ LEFT JOIN Cashier ON OrderHistory.CashierID = Cashier.ID AND OrderHistory.StoreI
 WHERE [Order].ID = ${orderID} AND [Order].StoreID = ${storeID}
 ORDER BY OrderHistory.ID DESC`;
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -523,7 +537,7 @@ ORDER BY OrderHistory.ID DESC`;
     } else if (storeID == 1018) {
       order.logo = storeConfig[3].logo;
     } else {
-      order.logo = "";
+      order.logo = '';
     }
     order.Tenders = await getLastTenderByOrder(3184, 229);
     order.OrderEntries = await getOrderEntries(orderID, storeID);
@@ -541,7 +555,7 @@ ORDER BY OrderHistory.ID DESC`;
     // console.log(order);
     return order;
   } catch (err) {
-    console.log("Get Layaway Query Error: ", err);
+    console.log('Get Layaway Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -584,8 +598,8 @@ async function getSaleSumLayaway(transactionEntries) {
 async function getOrderID(orderHistoryID, storeId) {
   let query = `SELECT OrderID FROM OrderHistory WHERE OrderHistory.ID = ${orderHistoryID}`;
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -595,7 +609,7 @@ async function getOrderID(orderHistoryID, storeId) {
 
     return result.recordset[0].OrderID;
   } catch (err) {
-    console.log("Get Order ID Query Error: ", err);
+    console.log('Get Order ID Query Error: ', err);
     return { err: err };
   } finally {
     pool.close();
@@ -607,8 +621,8 @@ async function getLastCheckedTime() {
   ORDER BY lastCheckedTime DESC`;
 
   const pool = new sql.ConnectionPool(config[1]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -616,7 +630,7 @@ async function getLastCheckedTime() {
     let result = await pool.request().query(query);
     return result.recordset[0].lastCheckedTime;
   } catch (err) {
-    console.log("Query Error:", err);
+    console.log('Query Error:', err);
     return { err: err };
   } finally {
     pool.close();
@@ -628,8 +642,8 @@ async function getNewLayaways(lastCheckedTime) {
   WHERE [Time] > '${lastCheckedTime}' AND Closed = 0`;
 
   const pool = new sql.ConnectionPool(config[0]);
-  pool.on("error", err => {
-    console.log("SQL Error: ", err);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
   });
 
   try {
@@ -637,15 +651,15 @@ async function getNewLayaways(lastCheckedTime) {
     let result = await pool.request().query(query);
     return result.recordset;
   } catch (err) {
-    console.log("Query Error:", err);
+    console.log('Query Error:', err);
     return { err: err };
   } finally {
     pool.close();
   }
 }
 
-sql.on("error", err => {
-  console.log("Server Error:", err);
+sql.on('error', err => {
+  console.log('Server Error:', err);
 });
 
 module.exports = {

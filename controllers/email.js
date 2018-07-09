@@ -1,8 +1,14 @@
-const fs = require("fs");
-const nodemailer = require("nodemailer");
+const fs = require('fs');
+const nodemailer = require('nodemailer');
 
-const emailConfig = JSON.parse(fs.readFileSync("./emailConfig.json", "utf8"));
-const storeConfig = JSON.parse(fs.readFileSync("./storeConfig.json", "utf8"));
+const emailConfig = JSON.parse(fs.readFileSync('./emailConfig.json', 'utf8'));
+const storeConfig = JSON.parse(fs.readFileSync('./storeConfig.json', 'utf8'));
+
+let timeOptions = {
+  timeZone: 'UTC',
+  hour: '2-digit',
+  minute: '2-digit'
+};
 
 async function email(html, typeOfEmail, storeID) {
   var transporter = nodemailer.createTransport({
@@ -11,40 +17,40 @@ async function email(html, typeOfEmail, storeID) {
       pass: emailConfig.password
     },
     direct: true,
-    host: "smtpout.secureserver.net",
+    host: 'smtpout.secureserver.net',
     port: 465,
     secure: true
   });
 
-  let store = "";
+  let store = '';
   if (storeID == 229) {
-    store = "Hermitage";
+    store = 'Hermitage';
   } else if (storeID == 213) {
-    store = "ZK";
+    store = 'ZK';
   } else if (storeID == 223) {
-    store = "Eden";
+    store = 'Eden';
   } else if (storeID == 1018) {
-    store = "Royal";
+    store = 'Royal';
   }
 
   var mailOptions = {
     from: emailConfig.from,
     to: emailConfig.to,
-    subject: "",
+    subject: '',
     html: html
   };
 
-  if (typeOfEmail == "Sale") {
+  if (typeOfEmail == 'Sale') {
     mailOptions.subject = `New Sale in ${store}`;
-  } else if (typeOfEmail == "Payment") {
+  } else if (typeOfEmail == 'Payment') {
     mailOptions.subject = `New Payment in ${store}`;
-  } else if (typeOfEmail == "Layaway") {
+  } else if (typeOfEmail == 'Layaway') {
     mailOptions.subject = `New Layaway in ${store}`;
-  } else if (typeOfEmail == "Refund") {
+  } else if (typeOfEmail == 'Refund') {
     mailOptions.subject = `Refund in ${store}`;
-  } else if (typeOfEmail == "Payment Refund") {
+  } else if (typeOfEmail == 'Payment Refund') {
     mailOptions.subject = `Payment Refund in ${store}`;
-  } else if (typeOfEmail == "GN Sale") {
+  } else if (typeOfEmail == 'GN Sale') {
     mailOptions.subject = `GN Sold in ${store}`;
   }
 
@@ -52,7 +58,7 @@ async function email(html, typeOfEmail, storeID) {
     if (error) {
       console.log(error);
     } else {
-      console.log("Email sent: " + info.response);
+      console.log('Email sent: ' + info.response);
     }
   });
 }
@@ -115,21 +121,21 @@ function buildCustomer(customer) {
   `;
 
   if (customer.Company != undefined) {
-    if (customer.Company != "") {
+    if (customer.Company != '') {
       currentCustomer += `
     ${customer.Company}<br>
     `;
     }
   }
 
-  let address2 = "";
-  if (customer.Address2 != "") {
+  let address2 = '';
+  if (customer.Address2 != '') {
     address2 = `
     <!-- Address 2 -->
     <br>${customer.Address2}
     `;
   } else {
-    address2 = "";
+    address2 = '';
   }
   currentCustomer += `${customer.FirstName} ${customer.LastName}
                 <br>${customer.Address}
@@ -138,19 +144,19 @@ function buildCustomer(customer) {
     customer.Country
   }`;
 
-  if (customer.PhoneNumber != "") {
+  if (customer.PhoneNumber != '') {
     currentCustomer += `
     <!-- Phone Number -->
     <br>${customer.PhoneNumber}`;
   }
-  if (customer.EmailAddress != "") {
+  if (customer.EmailAddress != '') {
     currentCustomer += `
     <!-- Email -->
     <br>${customer.EmailAddress}`;
   }
 
   if (Object.keys(customer).length === 0 && customer.constructor === Object) {
-    return "";
+    return '';
   }
   // console.log("Returned Customer");
   return currentCustomer;
@@ -383,20 +389,20 @@ function buildTotals(currentSale) {
 
 function getHTMLTemplate(currentSale) {
   // console.log(currentSale);
-  let logo = "";
+  let logo = '';
 
   var options = {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric"
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   };
 
-  let currentCustomer = "";
+  let currentCustomer = '';
   if (currentSale.Customer != undefined) {
     currentCustomer = buildCustomer(currentSale.Customer);
   } else {
-    currentCustomer = "No Customer Selected";
+    currentCustomer = 'No Customer Selected';
   }
 
   return `<html>
@@ -442,11 +448,12 @@ function getHTMLTemplate(currentSale) {
                     currentSale.TransactionNumber
                   }
                   <br><strong>Date: </strong>${currentSale.Time.toLocaleDateString(
-                    "en-US",
+                    'en-US',
                     options
                   )}
                   <br><strong>Time: </strong>${currentSale.Time.toLocaleTimeString(
-                    "en-US"
+                    'en-US',
+                    timeOptions
                   )}
                   <br><strong>Cashier: </strong>${currentSale.Cashier}
                 </td>
@@ -482,7 +489,7 @@ function getHTMLTemplate(currentSale) {
 function buildSaleHTML(sale, storeID) {
   let currentSale = sale;
   let currentStoreID = storeID;
-  let logo = "";
+  let logo = '';
 
   if (currentStoreID == 229) {
     logo = storeConfig[0].logo;
@@ -500,9 +507,9 @@ function buildSaleHTML(sale, storeID) {
     Object.keys(currentSale.Tenders).length != 0 &&
     currentSale.Tenders.constructor === Object
   ) {
-    html += buildTenders(currentSale.Tenders) + "\n";
+    html += buildTenders(currentSale.Tenders) + '\n';
   } else if (Array.isArray(currentSale.Tenders)) {
-    html += buildTenders(currentSale.Tenders) + "\n";
+    html += buildTenders(currentSale.Tenders) + '\n';
   }
 
   if (currentSale.TransactionEntries.length > 0) {
@@ -511,9 +518,9 @@ function buildSaleHTML(sale, storeID) {
 
   html += buildTotals(currentSale);
 
-  let comment = "";
+  let comment = '';
 
-  if (currentSale.Comment != "") {
+  if (currentSale.Comment != '') {
     comment = `<tr>
           <td>
             <table>
@@ -545,15 +552,14 @@ function buildSaleHTML(sale, storeID) {
 
 function getHTMLTemplateLayaway(currentSale) {
   // console.log(currentSale);
-  let logo = "";
+  let logo = '';
 
   var options = {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric"
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   };
-
   let currentCustomer = buildCustomer(currentSale.Customer);
   return `<html>
 
@@ -596,11 +602,12 @@ function getHTMLTemplateLayaway(currentSale) {
                 <td style="padding: 5px 5px 20px;" align="right" valign="top">
                   <strong>Order #: </strong>${currentSale.ID}
                   <br><strong>Date: </strong>${currentSale.Time.toLocaleDateString(
-                    "en-US",
+                    'en-US',
                     options
                   )}
                   <br><strong>Time: </strong>${currentSale.Time.toLocaleTimeString(
-                    "en-US"
+                    'en-US',
+                    timeOptions
                   )}
                   
                 </td>
@@ -637,7 +644,7 @@ function buildPaymentHTML(layaway, storeID) {
   let currentLayaway = layaway;
   // console.log(currentLayaway);
   let currentStoreID = storeID;
-  let logo = "";
+  let logo = '';
 
   if (currentStoreID == 229) {
     logo = storeConfig[0].logo;
@@ -655,7 +662,7 @@ function buildPaymentHTML(layaway, storeID) {
     Object.keys(currentLayaway.Tenders).length != 0 &&
     currentLayaway.Tenders.constructor === Object
   ) {
-    html += buildTenders(currentLayaway.Tenders) + "\n";
+    html += buildTenders(currentLayaway.Tenders) + '\n';
   }
 
   if (currentLayaway.OrderEntries.length > 0) {
@@ -664,9 +671,9 @@ function buildPaymentHTML(layaway, storeID) {
 
   html += buildTotalsLayaway(currentLayaway);
 
-  let comment = "";
+  let comment = '';
 
-  if (currentLayaway.Comment != "") {
+  if (currentLayaway.Comment != '') {
     comment = `<tr>
           <td>
             <table>
@@ -700,7 +707,7 @@ function buildLayawayHTML(layaway, storeID) {
   let currentLayaway = layaway;
   // console.log(currentLayaway);
   let currentStoreID = storeID;
-  let logo = "";
+  let logo = '';
 
   if (currentStoreID == 229) {
     logo = storeConfig[0].logo;
@@ -718,7 +725,7 @@ function buildLayawayHTML(layaway, storeID) {
     Object.keys(currentLayaway.Tenders).length != 0 &&
     currentLayaway.Tenders.constructor === Object
   ) {
-    html += buildTenders(currentLayaway.Tenders) + "\n";
+    html += buildTenders(currentLayaway.Tenders) + '\n';
   }
 
   if (currentLayaway.OrderEntries.length > 0) {
@@ -727,9 +734,9 @@ function buildLayawayHTML(layaway, storeID) {
 
   html += buildTotalsLayaway(currentLayaway);
 
-  let comment = "";
+  let comment = '';
 
-  if (currentLayaway.Comment != "") {
+  if (currentLayaway.Comment != '') {
     comment = `<tr>
           <td>
             <table>

@@ -64,3 +64,5 @@ typings/
 dbconfig.json
 .vscode/settings.json
 emailConfig.json
+dbconfigTEST.json
+storeConfig2.json

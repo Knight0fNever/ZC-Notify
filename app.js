@@ -1,11 +1,11 @@
-const fs = require("fs");
-const email = require("./controllers/email");
+const fs = require('fs');
+const email = require('./controllers/email');
 
-const storeConfig = JSON.parse(fs.readFileSync("./storeConfig.json", "utf8"));
+const storeConfig = JSON.parse(fs.readFileSync('./storeConfig2.json', 'utf8'));
 
-const db = require("./controllers/db");
-const File = require("./controllers/file");
-const Tenders = require("./controllers/tenders");
+const db = require('./controllers/db');
+const File = require('./controllers/file');
+const Tenders = require('./controllers/tenders');
 
 let date = new Date();
 
@@ -33,32 +33,36 @@ let gnSaleEmailQueue = [];
 let refundEmailQueue = [];
 let notCatQueue = [];
 
-let minutes = 1.0;
+let minutes = 0.1;
 let the_interval = minutes * 60 * 1000;
 var options = {
-  weekday: "long",
-  year: "numeric",
-  month: "long",
-  day: "numeric"
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
 };
 
-setInterval(async function() {
-  pre();
-  await startCheckTenders();
-  sendEmails();
-  console.log(
-    "Checked: ",
-    new Date().toLocaleDateString("en-us", options),
-    new Date().toLocaleTimeString("en-us", options)
-  );
-  saleEmailQueue = [];
-  newLayawayEmailQueue = [];
-  paymentEmailQueue = [];
-  refundPaymentQueue = [];
-  gnSaleEmailQueue = [];
-  refundEmailQueue = [];
-  notCatQueue = [];
-}, the_interval);
+test();
+
+async function test() {
+  let sale = await db.getTransaction('Sale', 31778, 229);
+  // console.log(sale);
+  email.email(email.buildSaleHTML(sale), 'Sale', 229);
+}
+
+// setInterval(async function() {
+//   pre();
+//   await startCheckTenders();
+//   sendEmails();
+//   console.log('Checked: ', new Date().toLocaleTimeString('en-us', options));
+//   saleEmailQueue = [];
+//   newLayawayEmailQueue = [];
+//   paymentEmailQueue = [];
+//   refundPaymentQueue = [];
+//   gnSaleEmailQueue = [];
+//   refundEmailQueue = [];
+//   notCatQueue = [];
+// }, the_interval);
 
 function sendEmails() {
   // console.log("Sales: ", saleEmailQueue.length);
@@ -73,72 +77,72 @@ function sendEmails() {
     saleEmailQueue.forEach(sale => {
       email.email(
         email.buildSaleHTML(sale, sale.Store.ID),
-        "Sale",
+        'Sale',
         sale.Store.ID
       );
     });
   } else {
-    console.log("Too many Sale Emails");
+    console.log('Too many Sale Emails');
   }
 
   if (newLayawayEmailQueue.length <= 5) {
     newLayawayEmailQueue.forEach(newLayaway => {
       email.email(
         email.buildLayawayHTML(newLayaway, newLayaway.StoreID),
-        "Layaway",
+        'Layaway',
         newLayaway.StoreID
       );
     });
   } else {
-    console.log("Too many Layaway Emails");
+    console.log('Too many Layaway Emails');
   }
 
   if (paymentEmailQueue.length <= 5) {
     paymentEmailQueue.forEach(payment => {
       email.email(
         email.buildPaymentHTML(payment, payment.StoreID),
-        "Payment",
+        'Payment',
         payment.StoreID
       );
     });
   } else {
-    console.log("Too many Payment Emails");
+    console.log('Too many Payment Emails');
   }
 
   if (refundPaymentQueue.length <= 5) {
     refundPaymentQueue.forEach(refPayment => {
       email.email(
         email.buildPaymentHTML(refPayment, refPayment.StoreID),
-        "Payment Refund",
+        'Payment Refund',
         refPayment.StoreID
       );
     });
   } else {
-    console.log("Too many Refund Payment Emails");
+    console.log('Too many Refund Payment Emails');
   }
 
   if (gnSaleEmailQueue.length <= 5) {
     gnSaleEmailQueue.forEach(gnSale => {
       email.email(
         email.buildSaleHTML(gnSale, gnSale.Store.ID),
-        "GN Sale",
+        'GN Sale',
         gnSale.Store.ID
       );
     });
   } else {
-    console.log("Too many GN Sale Emails");
+    console.log('Too many GN Sale Emails');
   }
 
   if (refundEmailQueue.length <= 5) {
     refundEmailQueue.forEach(refund => {
       email.email(
         email.buildSaleHTML(refund, refund.Store.ID),
-        "Refund",
+        'Refund',
         refund.Store.ID
       );
     });
   } else {
-    console.log("Too many Refund Emails");
+    console.log('Too many Refund Emails');
   }
 }
 
@@ -217,9 +221,7 @@ async function checkNewTenders(storeID) {
   return result;
 }
 
-function end() {
-  console.log("No previous tender entried found in AWS DB. Created them.");
-}
+function end() {}
 
 async function pre() {
   for (let i = 0; i < storeConfig.length; i++) {
@@ -229,6 +231,9 @@ async function pre() {
       await db
         .insertLatestTender(storeConfig[i].storeID, updatedTender)
         .then(() => {
+          console.log(
+            'No previous tender entried found in AWS DB. Created them.'
+          );
           end();
         });
     }
@@ -237,7 +242,7 @@ async function pre() {
 
 async function createSale(newTender) {
   let sale = await db.getTransaction(
-    "Sale",
+    'Sale',
     newTender.TransactionNumber,
     newTender.StoreID
   );
@@ -248,7 +253,7 @@ async function createSale(newTender) {
 
 async function createRefund(newTender) {
   let sale = await db.getTransaction(
-    "Refund",
+    'Refund',
     newTender.TransactionNumber,
     newTender.StoreID
   );
@@ -270,7 +275,7 @@ async function createNotCatSale(newTender) {
   // console.log("Not Catagorized: ", newTender.TransactionNumber);
 
   let sale = await db.getTransaction(
-    "Sale",
+    'Sale',
     newTender.TransactionNumber,
     newTender.StoreID
   );
@@ -282,7 +287,7 @@ async function checkForGNSale() {
   for (let i = 0; i < notCatQueue.length; i++) {
     let containsGN = false;
     for (let j = 0; j < notCatQueue[i].TransactionEntries.length; j++) {
-      if (notCatQueue[i].TransactionEntries[j].Item.ItemLookupCode == "GN") {
+      if (notCatQueue[i].TransactionEntries[j].Item.ItemLookupCode == 'GN') {
         containsGN = true;
       }
     }
@@ -298,8 +303,8 @@ async function checkForNewLayaway() {
 
   let dateString = lastChecked
     .toISOString()
-    .split("T")
-    .join(" ")
+    .split('T')
+    .join(' ')
     .slice(0, -1);
   // console.log(dateString);
   let newLayaways = await db.getNewLayaways(dateString);
