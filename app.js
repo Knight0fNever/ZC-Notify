@@ -42,7 +42,7 @@ var options = {
   day: 'numeric'
 };
 
-test();
+// test();
 
 async function test() {
   let sale = await db.getTransaction('Sale', 31778, 229);
@@ -50,19 +50,19 @@ async function test() {
   email.email(email.buildSaleHTML(sale), 'Sale', 229);
 }
 
-// setInterval(async function() {
-//   pre();
-//   await startCheckTenders();
-//   sendEmails();
-//   console.log('Checked: ', new Date().toLocaleTimeString('en-us', options));
-//   saleEmailQueue = [];
-//   newLayawayEmailQueue = [];
-//   paymentEmailQueue = [];
-//   refundPaymentQueue = [];
-//   gnSaleEmailQueue = [];
-//   refundEmailQueue = [];
-//   notCatQueue = [];
-// }, the_interval);
+setInterval(async function() {
+  pre();
+  await startCheckTenders();
+  sendEmails();
+  console.log('Checked: ', new Date().toLocaleTimeString('en-us', options));
+  saleEmailQueue = [];
+  newLayawayEmailQueue = [];
+  paymentEmailQueue = [];
+  refundPaymentQueue = [];
+  gnSaleEmailQueue = [];
+  refundEmailQueue = [];
+  notCatQueue = [];
+}, the_interval);
 
 function sendEmails() {
   // console.log("Sales: ", saleEmailQueue.length);
@@ -78,7 +78,8 @@ function sendEmails() {
       email.email(
         email.buildSaleHTML(sale, sale.Store.ID),
         'Sale',
-        sale.Store.ID
+        sale.Store.ID,
+        sale.TransactionNumber
       );
     });
   } else {
@@ -90,7 +91,8 @@ function sendEmails() {
       email.email(
         email.buildLayawayHTML(newLayaway, newLayaway.StoreID),
         'Layaway',
-        newLayaway.StoreID
+        newLayaway.StoreID,
+        newLayaway.ID
       );
     });
   } else {
@@ -102,7 +104,8 @@ function sendEmails() {
       email.email(
         email.buildPaymentHTML(payment, payment.StoreID),
         'Payment',
-        payment.StoreID
+        payment.StoreID,
+        payment.ID
       );
     });
   } else {
@@ -114,7 +117,8 @@ function sendEmails() {
       email.email(
         email.buildPaymentHTML(refPayment, refPayment.StoreID),
         'Payment Refund',
-        refPayment.StoreID
+        refPayment.StoreID,
+        refPayment.ID
       );
     });
   } else {
@@ -126,7 +130,8 @@ function sendEmails() {
       email.email(
         email.buildSaleHTML(gnSale, gnSale.Store.ID),
         'GN Sale',
-        gnSale.Store.ID
+        gnSale.Store.ID,
+        gnSale.TransactionNumber
       );
     });
   } else {
@@ -138,7 +143,8 @@ function sendEmails() {
       email.email(
         email.buildSaleHTML(refund, refund.Store.ID),
         'Refund',
-        refund.Store.ID
+        refund.Store.ID,
+        refund.TransactionNumber
       );
     });
   } else {

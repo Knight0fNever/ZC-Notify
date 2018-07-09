@@ -10,7 +10,7 @@ let timeOptions = {
   minute: '2-digit'
 };
 
-async function email(html, typeOfEmail, storeID) {
+async function email(html, typeOfEmail, storeID, transID) {
   var transporter = nodemailer.createTransport({
     auth: {
       user: emailConfig.userName,
@@ -41,17 +41,17 @@ async function email(html, typeOfEmail, storeID) {
   };
 
   if (typeOfEmail == 'Sale') {
-    mailOptions.subject = `New Sale in ${store}`;
+    mailOptions.subject = `New Sale in ${store} - Transaction #${transID}`;
   } else if (typeOfEmail == 'Payment') {
-    mailOptions.subject = `New Payment in ${store}`;
+    mailOptions.subject = `New Payment in ${store} - Order #${transID}`;
   } else if (typeOfEmail == 'Layaway') {
-    mailOptions.subject = `New Layaway in ${store}`;
+    mailOptions.subject = `New Layaway in ${store} - Order #${transID}`;
   } else if (typeOfEmail == 'Refund') {
-    mailOptions.subject = `Refund in ${store}`;
+    mailOptions.subject = `Refund in ${store} - Transaction #${transID}`;
   } else if (typeOfEmail == 'Payment Refund') {
-    mailOptions.subject = `Payment Refund in ${store}`;
+    mailOptions.subject = `Payment Refund in ${store} - Order #${transID}`;
   } else if (typeOfEmail == 'GN Sale') {
-    mailOptions.subject = `GN Sold in ${store}`;
+    mailOptions.subject = `GN Sold in ${store} - Transaction #${transID}`;
   }
 
   transporter.sendMail(mailOptions, function(error, info) {
