@@ -25,12 +25,16 @@ let date = new Date();
 // 4. Iterate through email queues and generate emails.
 // 5. EXIT.
 
+let emailCount = 0;
+
 let saleEmailQueue = [];
 let newLayawayEmailQueue = [];
 let paymentEmailQueue = [];
 let refundPaymentQueue = [];
 let gnSaleEmailQueue = [];
 let refundEmailQueue = [];
+let closedLayawayQueue = [];
+
 let notCatQueue = [];
 
 let minutes = 0.1;
@@ -48,108 +52,124 @@ async function test() {
   // db.getLastOrder(229).then(orderID => {
   //   console.log(orderID);
   // });
-  pre();
+  // console.log(await db.getLayaway(3305, 229));
+  // console.log(await db.getLatestOrder(229));
 }
 
-// setInterval(async function() {
-//   pre();
-//   await startCheckTenders();
-//   sendEmails();
-//   console.log('Checked: ', new Date().toLocaleTimeString('en-us', options));
-//   saleEmailQueue = [];
-//   newLayawayEmailQueue = [];
-//   paymentEmailQueue = [];
-//   refundPaymentQueue = [];
-//   gnSaleEmailQueue = [];
-//   refundEmailQueue = [];
-//   notCatQueue = [];
-// }, the_interval);
+setInterval(async function() {
+  pre();
+  await startCheckTenders();
+  sendEmails();
+  console.log(
+    'Checked: ',
+    new Date().toLocaleTimeString('en-us', options),
+    'Email Count:',
+    emailCount
+  );
+  saleEmailQueue = [];
+  newLayawayEmailQueue = [];
+  paymentEmailQueue = [];
+  refundPaymentQueue = [];
+  gnSaleEmailQueue = [];
+  refundEmailQueue = [];
+  notCatQueue = [];
+  closedLayawayQueue = [];
+}, the_interval);
 
 function sendEmails() {
-  // console.log("Sales: ", saleEmailQueue.length);
-  // console.log("New Layaways: ", newLayawayEmailQueue.length);
-  // console.log("Payments: ", paymentEmailQueue.length);
-  // console.log("Refund Payments: ", refundPaymentQueue.length);
-  // console.log("GN Sales: ", gnSaleEmailQueue.length);
-  // console.log("Refunds: ", refundEmailQueue.length);
-  // console.log("Not Catagorized: ", notCatQueue.length);
+  let emailQueue = [];
 
-  if (saleEmailQueue.length <= 5) {
-    saleEmailQueue.forEach(sale => {
-      email.email(
-        email.buildSaleHTML(sale, sale.Store.ID),
-        'Sale',
-        sale.Store.ID,
-        sale.TransactionNumber
-      );
-    });
-  } else {
-    console.log('Too many Sale Emails');
-  }
+  saleEmailQueue.forEach(sale => {
+    sale.Type = 'Sale';
+    emailQueue.push(sale);
+  });
 
-  if (newLayawayEmailQueue.length <= 5) {
-    newLayawayEmailQueue.forEach(newLayaway => {
-      email.email(
-        email.buildLayawayHTML(newLayaway, newLayaway.StoreID),
-        'Layaway',
-        newLayaway.StoreID,
-        newLayaway.ID
-      );
-    });
-  } else {
-    console.log('Too many Layaway Emails');
-  }
+  closedLayawayQueue.forEach(sale => {
+    sale.Type = 'Closed Layaway';
+    emailQueue.push(sale);
+  });
 
-  if (paymentEmailQueue.length <= 5) {
-    paymentEmailQueue.forEach(payment => {
-      email.email(
-        email.buildPaymentHTML(payment, payment.StoreID),
-        'Payment',
-        payment.StoreID,
-        payment.ID
-      );
-    });
-  } else {
-    console.log('Too many Payment Emails');
-  }
+  newLayawayEmailQueue.forEach(newLayaway => {
+    newLayaway.Type = 'Layaway';
+    emailQueue.push(newLayaway);
+  });
 
-  if (refundPaymentQueue.length <= 5) {
-    refundPaymentQueue.forEach(refPayment => {
-      email.email(
-        email.buildPaymentHTML(refPayment, refPayment.StoreID),
-        'Payment Refund',
-        refPayment.StoreID,
-        refPayment.ID
-      );
-    });
-  } else {
-    console.log('Too many Refund Payment Emails');
-  }
+  paymentEmailQueue.forEach(payment => {
+    payment.Type = 'Payment';
+    emailQueue.push(payment);
+  });
 
-  if (gnSaleEmailQueue.length <= 5) {
-    gnSaleEmailQueue.forEach(gnSale => {
-      email.email(
-        email.buildSaleHTML(gnSale, gnSale.Store.ID),
-        'GN Sale',
-        gnSale.Store.ID,
-        gnSale.TransactionNumber
-      );
-    });
-  } else {
-    console.log('Too many GN Sale Emails');
-  }
+  refundPaymentQueue.forEach(refPayment => {
+    refPayment.Type = 'Payment Refund';
+    emailQueue.push(refPayment);
+  });
 
-  if (refundEmailQueue.length <= 5) {
-    refundEmailQueue.forEach(refund => {
-      email.email(
-        email.buildSaleHTML(refund, refund.Store.ID),
-        'Refund',
-        refund.Store.ID,
-        refund.TransactionNumber
-      );
+  gnSaleEmailQueue.forEach(gnSale => {
+    gnSale.Type = 'GN Sale';
+    emailQueue.push(gnSale);
+  });
+
+  refundEmailQueue.forEach(refund => {
+    refund.Type = 'Refund';
+    emailQueue.push(refund);
+  });
+
+  emailCount += emailQueue.length;
+
+  if (emailCount < 50) {
+    emailQueue.forEach(transaction => {
+      // console.log(transaction.Type);
+      if (transaction.Type == 'Sale') {
+        email.email(
+          email.buildSaleHTML(transaction),
+          transaction.Type,
+          transaction.Store.ID,
+          transaction.TransactionNumber
+        );
+      } else if (transaction.Type == 'Closed Layaway') {
+        email.email(
+          email.buildSaleHTML(transaction),
+          transaction.Type,
+          transaction.Store.ID,
+          transaction.TransactionNumber
+        );
+      } else if (transaction.Type == 'Layaway') {
+        email.email(
+          email.buildLayawayHTML(transaction),
+          transaction.Type,
+          transaction.StoreID,
+          transaction.ID
+        );
+      } else if ((transaction.Type = 'Payment')) {
+        email.email(
+          email.buildPaymentHTML(transaction),
+          transaction.Type,
+          transaction.StoreID,
+          transaction.ID
+        );
+      } else if ((transaction.Type = 'Payment Refund')) {
+        email.email(
+          email.buildPaymentHTML(transaction),
+          transaction.Type,
+          transaction.StoreID,
+          transaction.ID
+        );
+      } else if ((transaction.Type = 'Refund')) {
+        email.email(
+          email.buildSaleHTML(transaction),
+          transaction.Type,
+          transaction.StoreID,
+          transaction.ID
+        );
+      } else if ((transaction.Type = 'GN Sale')) {
+        email.email(
+          email.buildSaleHTML(transaction),
+          transaction.Type,
+          transaction.StoreID,
+          transaction.ID
+        );
+      }
     });
-  } else {
-    console.log('Too many Refund Emails');
   }
 }
 
@@ -181,9 +201,20 @@ async function startCheckTenders() {
   // 3. Check tender type of each Tender.
   for (let i = 0; i < newTenders.length; i++) {
     // Sale
-    if (newTenders[i].TransactionNumber != 0 && newTenders[i].Amount > 2000) {
+    if (
+      newTenders[i].TransactionNumber != 0 &&
+      newTenders[i].Amount > 2000 &&
+      newTenders[i].OrderHistoryID == 0
+    ) {
       // SALE
       createSale(newTenders[i]);
+    } else if (
+      newTenders[i].TransactionNumber != 0 &&
+      newTenders[i].Amount > 0 &&
+      newTenders[i].OrderHistoryID != 0
+    ) {
+      // Closed Layaway
+      createClosedLayaway(newTenders[i]);
     } else if (
       newTenders[i].TransactionNumber != 0 &&
       newTenders[i].Amount < 0
@@ -212,7 +243,7 @@ async function startCheckTenders() {
   // Look for GN sale
   await checkForGNSale();
   await checkForNewLayaway();
-  console.log(newLayawayEmailQueue);
+  // console.log(newLayawayEmailQueue);
 }
 
 async function checkNewTenders(storeID) {
@@ -229,42 +260,49 @@ async function checkNewTenders(storeID) {
   return result;
 }
 
-function end() {}
+function end() {
+  console.log('Ended.');
+}
 
 async function pre() {
-  // for (let i = 0; i < storeConfig.length; i++) {
-  //   let latestTender = await db.getLatestTender(storeConfig[i].storeID, 1);
-  //   if (latestTender == null) {
-  //     let updatedTender = await db.getLatestTender(storeConfig[i].storeID, 0);
-  //     await db
-  //       .insertLatestTender(storeConfig[i].storeID, updatedTender)
-  //       .then(() => {
-  //         console.log(
-  //           'No previous tender entried found in AWS DB. Created them.'
-  //         );
-  //         end();
-  //       });
-  //   }
-  // }
+  let addedSales = false;
+  let addedOrders = false;
+  for (let i = 0; i < storeConfig.length; i++) {
+    let latestTender = await db.getLatestTender(storeConfig[i].storeID, 1);
+    if (latestTender == null) {
+      let updatedTender = await db.getLatestTender(storeConfig[i].storeID, 0);
+      await db
+        .insertLatestTender(storeConfig[i].storeID, updatedTender)
+        .then(() => {
+          console.log(
+            'No previous tender entried found in AWS DB. Created them.'
+          );
+          addedSales = true;
+        });
+    }
+  }
   for (let i = 0; i < storeConfig.length; i++) {
     let lastOrder = await db.getLastOrder(storeConfig[i].storeID, 1);
     if (lastOrder == undefined) {
-      // TODO: Update with latest order
       db.getLatestOrder(storeConfig[i].storeID).then(orderID => {
-        db.updateLatestOrder(orderID, storeConfig[i].storeID).then(() => {});
+        db.insertLatestOrder(orderID, storeConfig[i].storeID).then(() => {
+          // console.log('Inserted');
+        });
       });
-      end();
+      addedOrders = true;
     } else if (Array.isArray(lastOrder)) {
       if (lastOrder.length == 0) {
-        // TODO: Update with latest order
         db.getLatestOrder(storeConfig[i].storeID).then(orderID => {
-          db.updateLatestOrder(orderID, storeConfig[i].storeID).then(() => {});
+          db.insertLatestOrder(orderID, storeConfig[i].storeID).then(() => {
+            console.log('Inserted');
+          });
         });
-        end();
+        addedOrders = true;
       }
-    } else {
-      // TODO: Compare
     }
+  }
+  if (addedOrders || addedSales) {
+    end();
   }
 }
 
@@ -277,6 +315,17 @@ async function createSale(newTender) {
   // console.log(sale);
   // console.log("Sale: ", sale.TransactionNumber);
   saleEmailQueue.push(sale);
+}
+
+async function createClosedLayaway(newTender) {
+  let sale = await db.getTransaction(
+    'Closed Layaway',
+    newTender.TransactionNumber,
+    newTender.StoreID
+  );
+  // console.log(sale);
+  // console.log("Sale: ", sale.TransactionNumber);
+  closedLayawayQueue.push(sale);
 }
 
 async function createRefund(newTender) {
@@ -327,23 +376,29 @@ async function checkForGNSale() {
 }
 
 async function checkForNewLayaway() {
-  let lastChecked = await db.getLastCheckedTime();
-  // console.log(lastChecked.getUTCHours());
-  lastChecked.setUTCHours(lastChecked.getHours());
+  for (let i = 0; i < storeConfig.length; i++) {
+    let lastChecked = await db.getLastOrder(storeConfig[i].storeID);
+    lastChecked = lastChecked[0].lastOrder;
+    // console.log('Last Checked:', lastChecked);
 
-  let dateString = lastChecked
-    .toISOString()
-    .split('T')
-    .join(' ')
-    .slice(0, -1);
-  console.log(dateString);
-  let newLayaways = await db.getNewLayaways(dateString);
-  // console.log(newLayaways);
-  newLayaways.forEach(layaway => {
-    let newLayaway = db
-      .getLayaway(layaway.ID, layaway.StoreID)
-      .then(layaway => {
-        newLayawayEmailQueue.push(newLayaway);
-      });
-  });
+    let newLayaways = await db.getLatestOrders(
+      lastChecked,
+      storeConfig[i].storeID
+    );
+
+    // console.log('New Layaways:', newLayaways);
+    for (let j = 0; j < newLayaways.length; j++) {
+      let newLayaway = await db.getLayaway(
+        newLayaways[j].ID,
+        newLayaways[j].StoreID
+      );
+      newLayawayEmailQueue.push(newLayaway);
+    }
+  }
+  for (let i = 0; i < storeConfig.length; i++) {
+    let latestOrder = await db.getLatestOrder(storeConfig[i].storeID);
+    // console.log('LatestOrder:', latestOrder);
+    await db.updateLatestOrder(latestOrder, storeConfig[i].storeID);
+  }
+  // console.log(newLayawayEmailQueue);
 }

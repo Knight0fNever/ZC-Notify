@@ -686,6 +686,7 @@ async function getLastOrder(storeID) {
   }
 }
 
+// Creates new entry with latest order in AWS
 async function insertLatestOrder(orderID, storeID) {
   let query = `INSERT INTO [order] VALUES (${storeID}, ${orderID})`;
   // console.log(orderID);
@@ -741,7 +742,7 @@ async function getLatestOrder(storeID) {
 WHERE StoreID = ${storeID}
 ORDER BY AutoID DESC`;
 
-  // console.log(query);
+  // console.log('Query:', query);
 
   const pool = new sql.ConnectionPool(config[0]);
   pool.on('error', err => {
@@ -751,12 +752,38 @@ ORDER BY AutoID DESC`;
   try {
     await pool.connect();
     let result = await pool.request().query(query);
-    console.log('Local DB: ', result.recordset[0]);
+    // console.log('Local DB: ', result.recordset[0]);
     if (result.recordset[0] == undefined) {
       return 0;
     } else {
       return result.recordset[0].ID;
     }
+  } catch (err) {
+    console.log('Query Error:', err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
+// Gets latest orders from HQ in an array
+async function getLatestOrders(lastOrder, storeID) {
+  // console.log('StoreID: ', storeID);
+  let query = `SELECT ID, StoreID FROM [Order]
+WHERE StoreID = ${storeID} AND ID > ${lastOrder} AND Closed = 0`;
+
+  // console.log('Query:', query);
+
+  const pool = new sql.ConnectionPool(config[0]);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+    // console.log('Local DB: ', result.recordset[0]);
+    return result.recordset;
   } catch (err) {
     console.log('Query Error:', err);
     return { err: err };
@@ -793,5 +820,6 @@ module.exports = {
   getLatestOrder: getLatestOrder,
   getLastOrder: getLastOrder,
   updateLatestOrder: updateLatestOrder,
-  insertLatestOrder: insertLatestOrder
+  insertLatestOrder: insertLatestOrder,
+  getLatestOrders: getLatestOrders
 };

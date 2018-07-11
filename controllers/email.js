@@ -52,6 +52,8 @@ async function email(html, typeOfEmail, storeID, transID) {
     mailOptions.subject = `Payment Refund in ${store} - Order #${transID}`;
   } else if (typeOfEmail == 'GN Sale') {
     mailOptions.subject = `GN Sold in ${store} - Transaction #${transID}`;
+  } else if (typeOfEmail == 'Closed Layaway') {
+    mailOptions.subject = `Closed Layaway in ${store} - Transaction #${transID}`;
   }
 
   transporter.sendMail(mailOptions, function(error, info) {
