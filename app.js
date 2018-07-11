@@ -62,7 +62,7 @@ setInterval(async function() {
   sendEmails();
   console.log(
     'Checked: ',
-    new Date().toLocaleTimeString('en-us', options),
+    new Date().toLocaleTimeString('en-us', options) + ' |',
     'Email Count:',
     emailCount
   );
