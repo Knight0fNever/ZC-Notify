@@ -37,7 +37,7 @@ let closedLayawayQueue = [];
 
 let notCatQueue = [];
 
-let minutes = 0.1;
+let minutes = 1.0;
 let the_interval = minutes * 60 * 1000;
 var options = {
   weekday: 'long',
