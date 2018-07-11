@@ -3,7 +3,7 @@ const fs = require('fs');
 
 let Sale = require('../models/sale');
 
-const config = JSON.parse(fs.readFileSync('./dbconfigTEST.json', 'utf8'));
+const config = JSON.parse(fs.readFileSync('./dbconfig.json', 'utf8'));
 const storeConfig = JSON.parse(fs.readFileSync('./storeConfig.json', 'utf8'));
 
 let debug = false;
@@ -628,6 +628,7 @@ async function getLastCheckedTime() {
   try {
     await pool.connect();
     let result = await pool.request().query(query);
+    // console.log('Last Checked Time: ', result.recordset[0].lastCheckedTime);
     return result.recordset[0].lastCheckedTime;
   } catch (err) {
     console.log('Query Error:', err);
@@ -641,6 +642,8 @@ async function getNewLayaways(lastCheckedTime) {
   let query = `SELECT * FROM [Order]
   WHERE [Time] > '${lastCheckedTime}' AND Closed = 0`;
 
+  // console.log(query);
+
   const pool = new sql.ConnectionPool(config[0]);
   pool.on('error', err => {
     console.log('SQL Error: ', err);
@@ -650,6 +653,110 @@ async function getNewLayaways(lastCheckedTime) {
     await pool.connect();
     let result = await pool.request().query(query);
     return result.recordset;
+  } catch (err) {
+    console.log('Query Error:', err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
+// Gets latest order from AWS
+async function getLastOrder(storeID) {
+  let query = `SELECT TOP 1 lastOrder FROM [order]
+  WHERE storeID = ${storeID}
+  ORDER BY lastOrder DESC`;
+
+  // console.log(query);
+
+  const pool = new sql.ConnectionPool(config[1]);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+    return result.recordset;
+  } catch (err) {
+    console.log('Query Error:', err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
+async function insertLatestOrder(orderID, storeID) {
+  let query = `INSERT INTO [order] VALUES (${storeID}, ${orderID})`;
+  // console.log(orderID);
+
+  // console.log(query);
+  const pool = new sql.ConnectionPool(config[1]);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+    // console.log('Result:', result);
+    // return result.recordset[0];
+  } catch (err) {
+    console.log('Query Error: ', err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
+// Updates latest order in AWS
+async function updateLatestOrder(orderID, storeID) {
+  let query = `UPDATE [order] SET lastOrder = ${orderID}
+  WHERE storeID = ${storeID}`;
+  // console.log(orderID);
+
+  // console.log(query);
+  const pool = new sql.ConnectionPool(config[1]);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+    // console.log('Result:', result);
+    // return result.recordset[0];
+  } catch (err) {
+    console.log('Query Error: ', err);
+    return { err: err };
+  } finally {
+    pool.close();
+  }
+}
+
+// Gets latest order from HQ
+async function getLatestOrder(storeID) {
+  // console.log('StoreID: ', storeID);
+  let query = `SELECT TOP 1 ID FROM [Order]
+WHERE StoreID = ${storeID}
+ORDER BY AutoID DESC`;
+
+  // console.log(query);
+
+  const pool = new sql.ConnectionPool(config[0]);
+  pool.on('error', err => {
+    console.log('SQL Error: ', err);
+  });
+
+  try {
+    await pool.connect();
+    let result = await pool.request().query(query);
+    console.log('Local DB: ', result.recordset[0]);
+    if (result.recordset[0] == undefined) {
+      return 0;
+    } else {
+      return result.recordset[0].ID;
+    }
   } catch (err) {
     console.log('Query Error:', err);
     return { err: err };
@@ -682,5 +789,9 @@ module.exports = {
   getTenderByID: getTenderByID,
   getLastTenderByOrder: getLastTenderByOrder,
   getLastCheckedTime: getLastCheckedTime,
-  getNewLayaways: getNewLayaways
+  getNewLayaways: getNewLayaways,
+  getLatestOrder: getLatestOrder,
+  getLastOrder: getLastOrder,
+  updateLatestOrder: updateLatestOrder,
+  insertLatestOrder: insertLatestOrder
 };

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const email = require('./controllers/email');
 
-const storeConfig = JSON.parse(fs.readFileSync('./storeConfig2.json', 'utf8'));
+const storeConfig = JSON.parse(fs.readFileSync('./storeConfig.json', 'utf8'));
 
 const db = require('./controllers/db');
 const File = require('./controllers/file');
@@ -42,27 +42,28 @@ var options = {
   day: 'numeric'
 };
 
-// test();
+test();
 
 async function test() {
-  let sale = await db.getTransaction('Sale', 31778, 229);
-  // console.log(sale);
-  email.email(email.buildSaleHTML(sale), 'Sale', 229);
+  // db.getLastOrder(229).then(orderID => {
+  //   console.log(orderID);
+  // });
+  pre();
 }
 
-setInterval(async function() {
-  pre();
-  await startCheckTenders();
-  sendEmails();
-  console.log('Checked: ', new Date().toLocaleTimeString('en-us', options));
-  saleEmailQueue = [];
-  newLayawayEmailQueue = [];
-  paymentEmailQueue = [];
-  refundPaymentQueue = [];
-  gnSaleEmailQueue = [];
-  refundEmailQueue = [];
-  notCatQueue = [];
-}, the_interval);
+// setInterval(async function() {
+//   pre();
+//   await startCheckTenders();
+//   sendEmails();
+//   console.log('Checked: ', new Date().toLocaleTimeString('en-us', options));
+//   saleEmailQueue = [];
+//   newLayawayEmailQueue = [];
+//   paymentEmailQueue = [];
+//   refundPaymentQueue = [];
+//   gnSaleEmailQueue = [];
+//   refundEmailQueue = [];
+//   notCatQueue = [];
+// }, the_interval);
 
 function sendEmails() {
   // console.log("Sales: ", saleEmailQueue.length);
@@ -211,6 +212,7 @@ async function startCheckTenders() {
   // Look for GN sale
   await checkForGNSale();
   await checkForNewLayaway();
+  console.log(newLayawayEmailQueue);
 }
 
 async function checkNewTenders(storeID) {
@@ -230,18 +232,38 @@ async function checkNewTenders(storeID) {
 function end() {}
 
 async function pre() {
+  // for (let i = 0; i < storeConfig.length; i++) {
+  //   let latestTender = await db.getLatestTender(storeConfig[i].storeID, 1);
+  //   if (latestTender == null) {
+  //     let updatedTender = await db.getLatestTender(storeConfig[i].storeID, 0);
+  //     await db
+  //       .insertLatestTender(storeConfig[i].storeID, updatedTender)
+  //       .then(() => {
+  //         console.log(
+  //           'No previous tender entried found in AWS DB. Created them.'
+  //         );
+  //         end();
+  //       });
+  //   }
+  // }
   for (let i = 0; i < storeConfig.length; i++) {
-    let latestTender = await db.getLatestTender(storeConfig[i].storeID, 1);
-    if (latestTender == null) {
-      let updatedTender = await db.getLatestTender(storeConfig[i].storeID, 0);
-      await db
-        .insertLatestTender(storeConfig[i].storeID, updatedTender)
-        .then(() => {
-          console.log(
-            'No previous tender entried found in AWS DB. Created them.'
-          );
-          end();
+    let lastOrder = await db.getLastOrder(storeConfig[i].storeID, 1);
+    if (lastOrder == undefined) {
+      // TODO: Update with latest order
+      db.getLatestOrder(storeConfig[i].storeID).then(orderID => {
+        db.updateLatestOrder(orderID, storeConfig[i].storeID).then(() => {});
+      });
+      end();
+    } else if (Array.isArray(lastOrder)) {
+      if (lastOrder.length == 0) {
+        // TODO: Update with latest order
+        db.getLatestOrder(storeConfig[i].storeID).then(orderID => {
+          db.updateLatestOrder(orderID, storeConfig[i].storeID).then(() => {});
         });
+        end();
+      }
+    } else {
+      // TODO: Compare
     }
   }
 }
@@ -306,17 +328,22 @@ async function checkForGNSale() {
 
 async function checkForNewLayaway() {
   let lastChecked = await db.getLastCheckedTime();
+  // console.log(lastChecked.getUTCHours());
+  lastChecked.setUTCHours(lastChecked.getHours());
 
   let dateString = lastChecked
     .toISOString()
     .split('T')
     .join(' ')
     .slice(0, -1);
-  // console.log(dateString);
+  console.log(dateString);
   let newLayaways = await db.getNewLayaways(dateString);
   // console.log(newLayaways);
   newLayaways.forEach(layaway => {
-    let newLayaway = db.getLayaway(layaway.ID, layaway.StoreID);
-    newLayawayEmailQueue.push(newLayaway);
+    let newLayaway = db
+      .getLayaway(layaway.ID, layaway.StoreID)
+      .then(layaway => {
+        newLayawayEmailQueue.push(newLayaway);
+      });
   });
 }
