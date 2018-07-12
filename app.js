@@ -25,7 +25,7 @@ let date = new Date();
 // 4. Iterate through email queues and generate emails.
 // 5. EXIT.
 
-let emailCount = 0;
+let emailCount = 5;
 
 let saleEmailQueue = [];
 let newLayawayEmailQueue = [];
@@ -46,14 +46,11 @@ var options = {
   day: 'numeric'
 };
 
-test();
+// test();
 
 async function test() {
-  // db.getLastOrder(229).then(orderID => {
-  //   console.log(orderID);
-  // });
-  // console.log(await db.getLayaway(3305, 229));
-  // console.log(await db.getLatestOrder(229));
+  checkEmailCount();
+  console.log(emailCount);
 }
 
 setInterval(async function() {
@@ -75,6 +72,14 @@ setInterval(async function() {
   notCatQueue = [];
   closedLayawayQueue = [];
 }, the_interval);
+
+function checkEmailCount() {
+  let newDate = new Date();
+  if (newDate.getDate() != date.getDate()) {
+    date = new Date();
+    emailCount = 0;
+  }
+}
 
 function sendEmails() {
   let emailQueue = [];
