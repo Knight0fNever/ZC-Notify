@@ -25,7 +25,7 @@ let date = new Date();
 // 4. Iterate through email queues and generate emails.
 // 5. EXIT.
 
-let emailCount = 5;
+let emailCount = 0;
 
 let saleEmailQueue = [];
 let newLayawayEmailQueue = [];
