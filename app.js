@@ -34,6 +34,7 @@ let refundPaymentQueue = [];
 let gnSaleEmailQueue = [];
 let refundEmailQueue = [];
 let closedLayawayQueue = [];
+let sentEmails = [];
 
 let notCatQueue = [];
 
@@ -71,6 +72,7 @@ setInterval(async function() {
   refundEmailQueue = [];
   notCatQueue = [];
   closedLayawayQueue = [];
+  sentEmails = [];
 }, the_interval);
 
 function checkEmailCount() {
@@ -86,12 +88,16 @@ function sendEmails() {
 
   saleEmailQueue.forEach(sale => {
     sale.Type = 'Sale';
-    emailQueue.push(sale);
+    if (!sentEmails.includes(sale.TransactionNumber)) {
+      emailQueue.push(sale);
+    }
   });
 
   closedLayawayQueue.forEach(sale => {
     sale.Type = 'Closed Layaway';
-    emailQueue.push(sale);
+    if (!sentEmails.includes(sale.TransactionNumber)) {
+      emailQueue.push(sale);
+    }
   });
 
   newLayawayEmailQueue.forEach(newLayaway => {
@@ -101,12 +107,16 @@ function sendEmails() {
 
   paymentEmailQueue.forEach(payment => {
     payment.Type = 'Payment';
-    emailQueue.push(payment);
+    if (!sendEmails.includes(payment.ID)) {
+      emailQueue.push(payment);
+    }
   });
 
   refundPaymentQueue.forEach(refPayment => {
     refPayment.Type = 'Payment Refund';
-    emailQueue.push(refPayment);
+    if (!sendEmails.includes(refPayment.ID)) {
+      emailQueue.push(refPayment);
+    }
   });
 
   gnSaleEmailQueue.forEach(gnSale => {
@@ -116,7 +126,9 @@ function sendEmails() {
 
   refundEmailQueue.forEach(refund => {
     refund.Type = 'Refund';
-    emailQueue.push(refund);
+    if (!sendEmails.includes(refund.ID)) {
+      emailQueue.push(refund);
+    }
   });
 
   emailCount += emailQueue.length;
@@ -204,6 +216,9 @@ async function startCheckTenders() {
   // console.log(newTenders);
 
   // 3. Check tender type of each Tender.
+  await checkForGNSale();
+  await checkForNewLayaway();
+
   for (let i = 0; i < newTenders.length; i++) {
     // Sale
     if (
@@ -244,11 +259,6 @@ async function startCheckTenders() {
       notCatQueue.push(nonCatSale);
     }
   }
-
-  // Look for GN sale
-  await checkForGNSale();
-  await checkForNewLayaway();
-  // console.log(newLayawayEmailQueue);
 }
 
 async function checkNewTenders(storeID) {
@@ -376,6 +386,7 @@ async function checkForGNSale() {
     // console.log(containsGN);
     if (containsGN == true) {
       gnSaleEmailQueue.push(notCatQueue[i]);
+      sentEmails.push(notCatQueue[i].TransactionNumber);
     }
   }
 }
@@ -398,6 +409,7 @@ async function checkForNewLayaway() {
         newLayaways[j].StoreID
       );
       newLayawayEmailQueue.push(newLayaway);
+      sentEmails.push(newLayaway.ID);
     }
   }
   for (let i = 0; i < storeConfig.length; i++) {
