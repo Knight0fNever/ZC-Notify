@@ -64,6 +64,7 @@ typings/
 dbconfig.json
 
 .vscode/settings.json
+.vscode/launch.json
 
 emailConfig.json
 
