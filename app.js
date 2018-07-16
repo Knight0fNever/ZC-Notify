@@ -107,14 +107,14 @@ function sendEmails() {
 
   paymentEmailQueue.forEach(payment => {
     payment.Type = 'Payment';
-    if (!sendEmails.includes(payment.ID)) {
+    if (!sentEmails.includes(payment.ID)) {
       emailQueue.push(payment);
     }
   });
 
   refundPaymentQueue.forEach(refPayment => {
     refPayment.Type = 'Payment Refund';
-    if (!sendEmails.includes(refPayment.ID)) {
+    if (!sentEmails.includes(refPayment.ID)) {
       emailQueue.push(refPayment);
     }
   });
@@ -126,7 +126,7 @@ function sendEmails() {
 
   refundEmailQueue.forEach(refund => {
     refund.Type = 'Refund';
-    if (!sendEmails.includes(refund.ID)) {
+    if (!sentEmails.includes(refund.ID)) {
       emailQueue.push(refund);
     }
   });
