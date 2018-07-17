@@ -484,7 +484,7 @@ async function getLayaway(orderID, storeID) {
     } else {
       order.logo = '';
     }
-    order.Tenders = await getLastTenderByOrder(3184, 229);
+    order.Tenders = await getLastTenderByOrder(orderID, storeID);
     order.OrderEntries = await getOrderEntries(orderID, storeID);
     order.TotalQty = await getSaleSumLayaway(order.OrderEntries);
 
