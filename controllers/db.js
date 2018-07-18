@@ -32,7 +32,7 @@ async function getLatestTender(storeId, location) {
     return result.recordset[0].tenderID;
   } catch (err) {
     console.log('Query Error:', err);
-    return { err: err };
+    return 0;
   } finally {
     pool.close();
   }
@@ -56,7 +56,7 @@ async function getTenderEntry(tenderEntryID, storeId) {
     return result.recordset[0];
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
+    return {};
   } finally {
     pool.close();
   }
@@ -80,7 +80,7 @@ async function getTenders(transactionNumber, storeId) {
     return result.recordset;
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
+    return [];
   } finally {
     pool.close();
   }
@@ -101,7 +101,7 @@ async function getTenderByID(tenderID) {
     return result.recordset[0];
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
+    return {};
   } finally {
     pool.close();
   }
@@ -125,7 +125,7 @@ ORDER BY ID DESC`;
     return result.recordset[0];
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
+    return {};
   } finally {
     pool.close();
   }
@@ -171,15 +171,24 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
       transactionNumber,
       storeId
     );
-    saleResult.TotalQty = await getSaleSum(saleResult.TransactionEntries);
-    saleResult.TransactionEntries = await getItems(
-      saleResult.TransactionEntries
-    );
-    saleResult.TotalLot = await calculateLot(saleResult.TransactionEntries);
-    if (result.recordset[0].CustomerID != 0) {
+    if (
+      Object.keys(saleResult.TransactionEntries).length != 0 &&
+      saleResult.TransactionEntries.constructor === Object
+    ) {
+      saleResult.TotalQty = await getSaleSum(saleResult.TransactionEntries);
+      saleResult.TransactionEntries = await getItems(
+        saleResult.TransactionEntries
+      );
+      saleResult.TotalLot = await calculateLot(saleResult.TransactionEntries);
+    }
+
+    if (result.recordset[0].CustomerID != undefined) {
       saleResult.Customer = await getCustomer(saleResult.CustomerID);
     }
-    if (result.recordset[0].ShipToID[0] != 0) {
+    if (
+      result.recordset[0].ShipToID[0] != undefined &&
+      saleResult.Customer != undefined
+    ) {
       saleResult.Customer.ShippingAddress = await getShippingAddress(
         result.recordset[0].ShipToID[0]
       );
@@ -195,7 +204,7 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
     return saleResult;
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
+    return {};
   } finally {
     pool.close();
   }
@@ -204,17 +213,21 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
 async function getSaleSum(transactionEntries) {
   // console.log("Entries:".transactionEntries);
   let total = 0;
-  transactionEntries.forEach(entry => {
-    total += entry.Quantity;
-  });
+  if (transactionEntries != null && Array.isArray(transactionEntries)) {
+    transactionEntries.forEach(entry => {
+      total += entry.Quantity;
+    });
+  }
   return total;
 }
 
 function getLotSum(transactionEntries) {
   let total = 0;
-  transactionEntries.forEach(entry => {
-    total += entry.lot;
-  });
+  if (transactionEntries != null && Array.isArray(transactionEntries)) {
+    transactionEntries.forEach(entry => {
+      total += entry.lot;
+    });
+  }
   return total;
 }
 
@@ -237,7 +250,7 @@ async function getStoreInfo(storeID) {
     return store;
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
+    return {};
   } finally {
     pool.close();
   }
@@ -289,7 +302,7 @@ async function getTransactionEntries(transactionNumber, storeId) {
     return result.recordset;
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
+    return [];
   } finally {
     pool.close();
   }
@@ -311,7 +324,7 @@ async function getShippingAddress(shipToID) {
     return result.recordset;
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
+    return {};
   } finally {
     pool.close();
   }
@@ -319,14 +332,20 @@ async function getShippingAddress(shipToID) {
 
 async function getItems(transactionEntries) {
   let totalLot = 0;
-  for (let i = 0; i < transactionEntries.length; i++) {
-    transactionEntries[i].Item = await getItem(transactionEntries[i].ItemID);
-    transactionEntries[i].Lot = await getLot(
-      transactionEntries[i].Item.SubDescription2
-    );
+  if (transactionEntries != null && Array.isArray(transactionEntries)) {
+    for (let i = 0; i < transactionEntries.length; i++) {
+      transactionEntries[i].Item = await getItem(transactionEntries[i].ItemID);
+      if (transactionEntries[i].Item != null) {
+        transactionEntries[i].Lot = await getLot(
+          transactionEntries[i].Item.SubDescription2
+        );
+      }
+    }
+    // console.log(transactionEntries);
+    return transactionEntries;
+  } else {
+    return [];
   }
-  // console.log(transactionEntries);
-  return transactionEntries;
 }
 
 async function getItem(itemID) {
@@ -344,11 +363,13 @@ async function getItem(itemID) {
     // console.log(result.recordset[0]);
     let item = result.recordset[0];
     // console.log("Lot: ", getLot(result.recordset[0].SubDescription2));
-    item.Lot = await getLot(result.recordset[0].SubDescription2);
+    if (result.recordset[0].SubDescription2 != undefined) {
+      item.Lot = await getLot(result.recordset[0].SubDescription2);
+    }
     return result.recordset[0];
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
+    return {};
   } finally {
     pool.close();
   }
@@ -383,7 +404,6 @@ async function insertLatestTender(storeID, tenderID) {
     // return result.recordset[0];
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
   } finally {
     pool.close();
   }
@@ -405,7 +425,6 @@ async function updateLatestTender(storeID, tenderID) {
     // return result.recordset[0];
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
   } finally {
     pool.close();
   }
@@ -431,7 +450,7 @@ async function getAllNewTenders(storeID, startTenderID) {
     return result.recordset;
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
+    return [];
   } finally {
     pool.close();
   }
@@ -452,7 +471,7 @@ async function getOrderEntries(orderID, storeID) {
     return result.recordset;
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
+    return [];
   } finally {
     pool.close();
   }
@@ -501,17 +520,13 @@ async function getLayaway(orderID, storeID) {
     return order;
   } catch (err) {
     console.log('Get Layaway Query Error: ', err);
-    return { err: err };
+    return {};
   } finally {
     pool.close();
   }
 }
 
 async function getLayawayPayment(orderID, storeID) {
-  // let query = `SELECT [Order].*, Cashier.Name as 'Cashier' FROM [Order]
-  // LEFT JOIN Cashier ON [Order].CashierID = Cashier.ID AND [Order].StoreID = Cashier.StoreID
-  //   WHERE [Order].ID = ${orderID} AND [Order].StoreID = ${storeID}`;
-
   let query = `SELECT TOP 1 [Order].*, OrderHistory.ID as 'OrderHistoryID', Cashier.Name as 'Cashier' FROM [Order]
 LEFT JOIN OrderHistory ON [Order].ID = OrderHistory.OrderID AND [Order].StoreID = OrderHistory.StoreID
 LEFT JOIN Cashier ON OrderHistory.CashierID = Cashier.ID AND OrderHistory.StoreID = Cashier.StoreID
@@ -556,7 +571,7 @@ ORDER BY OrderHistory.ID DESC`;
     return order;
   } catch (err) {
     console.log('Get Layaway Query Error: ', err);
-    return { err: err };
+    return {};
   } finally {
     pool.close();
   }
@@ -564,34 +579,41 @@ ORDER BY OrderHistory.ID DESC`;
 
 async function calculateLot(transactionEntries) {
   let totalLot = 0;
-  transactionEntries.map(entry => {
-    totalLot += entry.Lot * entry.Quantity;
-  });
+  if (transactionEntries != undefined && Array.isArray(transactionEntries)) {
+    transactionEntries.map(entry => {
+      totalLot += entry.Lot * entry.Quantity;
+    });
+  }
   return totalLot;
 }
 
 async function calculateLotLayaway(transactionEntries) {
   let totalLot = 0;
-  transactionEntries.map(entry => {
-    // console.log("Entry:", entry);
-    totalLot += entry.Item.Lot * entry.QuantityOnOrder;
-  });
+  if (transactionEntries != undefined && Array.isArray(transactionEntries)) {
+    transactionEntries.map(entry => {
+      totalLot += entry.Item.Lot * entry.QuantityOnOrder;
+    });
+  }
   return totalLot;
 }
 
 async function getSaleSum(transactionEntries) {
   let total = 0;
-  transactionEntries.forEach(entry => {
-    total += entry.Quantity;
-  });
+  if (transactionEntries != undefined && Array.isArray(transactionEntries)) {
+    transactionEntries.forEach(entry => {
+      total += entry.Quantity;
+    });
+  }
   return total;
 }
 
 async function getSaleSumLayaway(transactionEntries) {
   let total = 0;
-  transactionEntries.forEach(entry => {
-    total += entry.QuantityOnOrder;
-  });
+  if (transactionEntries != undefined && Array.isArray(transactionEntries)) {
+    transactionEntries.forEach(entry => {
+      total += entry.QuantityOnOrder;
+    });
+  }
   return total;
 }
 
@@ -605,12 +627,11 @@ async function getOrderID(orderHistoryID, storeId) {
   try {
     await pool.connect();
     let result = await pool.request().query(query);
-    // console.log("Get OrderID query: ", query);
 
     return result.recordset[0].OrderID;
   } catch (err) {
     console.log('Get Order ID Query Error: ', err);
-    return { err: err };
+    return 0;
   } finally {
     pool.close();
   }
@@ -632,7 +653,7 @@ async function getLastCheckedTime() {
     return result.recordset[0].lastCheckedTime;
   } catch (err) {
     console.log('Query Error:', err);
-    return { err: err };
+    return undefined;
   } finally {
     pool.close();
   }
@@ -655,7 +676,7 @@ async function getNewLayaways(lastCheckedTime) {
     return result.recordset;
   } catch (err) {
     console.log('Query Error:', err);
-    return { err: err };
+    return [];
   } finally {
     pool.close();
   }
@@ -680,7 +701,7 @@ async function getLastOrder(storeID) {
     return result.recordset;
   } catch (err) {
     console.log('Query Error:', err);
-    return { err: err };
+    return undefined;
   } finally {
     pool.close();
   }
@@ -700,11 +721,8 @@ async function insertLatestOrder(orderID, storeID) {
   try {
     await pool.connect();
     let result = await pool.request().query(query);
-    // console.log('Result:', result);
-    // return result.recordset[0];
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
   } finally {
     pool.close();
   }
@@ -725,11 +743,8 @@ async function updateLatestOrder(orderID, storeID) {
   try {
     await pool.connect();
     let result = await pool.request().query(query);
-    // console.log('Result:', result);
-    // return result.recordset[0];
   } catch (err) {
     console.log('Query Error: ', err);
-    return { err: err };
   } finally {
     pool.close();
   }
@@ -737,12 +752,9 @@ async function updateLatestOrder(orderID, storeID) {
 
 // Gets latest order from HQ
 async function getLatestOrder(storeID) {
-  // console.log('StoreID: ', storeID);
   let query = `SELECT TOP 1 ID FROM [Order]
 WHERE StoreID = ${storeID}
 ORDER BY AutoID DESC`;
-
-  // console.log('Query:', query);
 
   const pool = new sql.ConnectionPool(config[0]);
   pool.on('error', err => {
@@ -760,7 +772,7 @@ ORDER BY AutoID DESC`;
     }
   } catch (err) {
     console.log('Query Error:', err);
-    return { err: err };
+    return 0;
   } finally {
     pool.close();
   }
@@ -768,7 +780,6 @@ ORDER BY AutoID DESC`;
 
 // Gets latest orders from HQ in an array
 async function getLatestOrders(lastOrder, storeID) {
-  // console.log('StoreID: ', storeID);
   let query = `SELECT ID, StoreID FROM [Order]
 WHERE StoreID = ${storeID} AND ID > ${lastOrder} AND Closed = 0`;
 
@@ -786,7 +797,7 @@ WHERE StoreID = ${storeID} AND ID > ${lastOrder} AND Closed = 0`;
     return result.recordset;
   } catch (err) {
     console.log('Query Error:', err);
-    return { err: err };
+    return {};
   } finally {
     pool.close();
   }
