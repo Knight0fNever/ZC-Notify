@@ -286,6 +286,7 @@ function end(error = '') {
 }
 
 async function pre() {
+  let error = false;
   let addedSales = false;
   let addedOrders = false;
   for (let i = 0; i < storeConfig.length; i++) {
@@ -303,7 +304,6 @@ async function pre() {
     }
   }
   for (let i = 0; i < storeConfig.length; i++) {
-    let error = false;
     let lastOrder = await db.getLastOrder(storeConfig[i].storeID, 1);
     if (lastOrder == undefined) {
       db.getLatestOrder(storeConfig[i].storeID)
