@@ -4,6 +4,27 @@ const nodemailer = require('nodemailer');
 const emailConfig = JSON.parse(fs.readFileSync('./emailConfig.json', 'utf8'));
 const storeConfig = JSON.parse(fs.readFileSync('./storeConfig.json', 'utf8'));
 
+Number.prototype.formatMoney = function(c, d, t) {
+  var n = this,
+    c = isNaN((c = Math.abs(c))) ? 2 : c,
+    d = d == undefined ? '.' : d,
+    t = t == undefined ? ',' : t,
+    s = n < 0 ? '-' : '',
+    i = String(parseInt((n = Math.abs(Number(n) || 0).toFixed(c)))),
+    j = (j = i.length) > 3 ? j % 3 : 0;
+  return (
+    s +
+    (j ? i.substr(0, j) + t : '') +
+    i.substr(j).replace(/(\d{3})(?=\d)/g, '$1' + t) +
+    (c
+      ? d +
+        Math.abs(n - i)
+          .toFixed(c)
+          .slice(2)
+      : '')
+  );
+};
+
 let timeOptions = {
   timeZone: 'UTC',
   hour: '2-digit',
@@ -86,13 +107,14 @@ function buildTenders(tenders) {
   if (Array.isArray(tenders)) {
     // Multiple Tenders
     tenders.forEach(tender => {
+      // console.log(tenders);
       result += `<tr>
                   <td style="padding: 5px 5px 20px;" valign="middle">
                     ${tender.Description}
                   </td>
                   <td colspan="6" style="padding: 5px 5px 20px;" align="right" valign="top"></td>
                   <td style="padding: 5px 5px 20px;" align="right" valign="middle">
-                    $${tender.Amount}
+                    $${tender.Amount.formatMoney(2)}
                   </td>
                 </tr>`;
     });
@@ -103,7 +125,7 @@ function buildTenders(tenders) {
                   </td>
                   <td colspan="6" style="padding: 5px 5px 20px;" align="right" valign="top"></td>
                   <td style="padding: 5px 5px 20px;" align="right" valign="middle">
-                    $${tenders.Amount}
+                    $${tender.Amount.formatMoney(2)}
                   </td>
                 </tr>`;
   }
@@ -212,12 +234,12 @@ function buildItemRows(transactionEntries) {
                     valign="middle">${entry.Quantity}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">
-                    $${entry.Price}
+                    $${entry.Price.formatMoney(2)}
                   </td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="middle">$${entry.SalesTax}</td>
+                    valign="middle">$${entry.SalesTax.formatMoney(2)}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="middle">$${entry.Lot}</td>
+                    valign="middle">$${entry.Lot.formatMoney(2)}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">${entry.SalesRep}</td>
                 </tr>
@@ -240,12 +262,12 @@ function buildItemRows(transactionEntries) {
                     valign="top">${entry.Quantity}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">
-                    $${entry.Price}
+                    $${entry.Price.formatMoney(2)}
                   </td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="top">$${entry.SalesTax}</td>
+                    valign="top">$${entry.SalesTax.formatMoney(2)}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="top">$${entry.lot}</td>
+                    valign="top">$${entry.lot.formatMoney(2)}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">${entry.SalesRep}</td>
                 </tr>
@@ -304,10 +326,10 @@ function buildItemRowsLayaway(orderEntries) {
                     valign="middle">${entry.QuantityOnOrder}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">
-                    $${entry.Price}
+                    $${entry.Price.formatMoney(2)}
                   </td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="middle">$${entry.Item.Lot}
+                    valign="middle">$${entry.Item.Lot.formatMoney(2)}
                     </td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">${entry.SalesRep}</td>
@@ -331,10 +353,10 @@ function buildItemRowsLayaway(orderEntries) {
                     valign="top">${orderEntries.QuantityOnOrder}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">
-                    $${orderEntries.Price}
+                    $${orderEntries.Price.formatMoney(2)}
                   </td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
-                    valign="top">$${orderEntries.Item.Lot}</td>
+                    valign="top">$${orderEntries.Item.Lot.formatMoney(2)}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">${orderEntries.SalesRep}</td>
                 </tr>
@@ -358,11 +380,11 @@ function buildTotalsLayaway(currentLayaway) {
                   </td>
                   <!-- Sales Total -->
                   <td style="font-weight: bold; padding: 5px;" align="center" valign="top">
-                    $${currentLayaway.Total}
+                    $${currentLayaway.Total.formatMoney(2)}
                   </td>
-                  <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">$${
-                    currentLayaway.TotalLot
-                  }</td>
+                  <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">$${currentLayaway.TotalLot.formatMoney(
+                    2
+                  )}</td>
                   <td style="font-weight: bold; padding: 5px;" align="center"; valign="top"></td>
                 </tr>`;
 
@@ -382,15 +404,15 @@ function buildTotals(currentSale) {
                   </td>
                   <!-- Sales Total -->
                   <td style="font-weight: bold; padding: 5px;" align="center" valign="top">
-                    $${currentSale.Total}
+                    $${currentSale.Total.formatMoney(2)}
                   </td>
                   <!-- Tax Total -->
                   <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">
-                    $${currentSale.SalesTax}
+                    $${currentSale.SalesTax.formatMoney(2)}
                   </td>
-                  <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">$${
-                    currentSale.TotalLot
-                  }</td>
+                  <td style="font-weight: bold; padding: 5px;" align="center"; valign="top">$${currentSale.TotalLot.formatMoney(
+                    2
+                  )}</td>
                   <td style="font-weight: bold; padding: 5px;" align="center"; valign="top"></td>
                 </tr>`;
 

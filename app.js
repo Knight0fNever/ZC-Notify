@@ -38,7 +38,7 @@ let sentEmails = [];
 
 let notCatQueue = [];
 
-let minutes = 1.0;
+let minutes = 0.5;
 let the_interval = minutes * 60 * 1000;
 var options = {
   weekday: 'long',
@@ -47,33 +47,35 @@ var options = {
   day: 'numeric'
 };
 
-// test();
+test();
 
 async function test() {
-  checkEmailCount();
-  console.log(emailCount);
+  let sale = await db.getTransaction('Sale', 31969, 229);
+  // let payment = await db.getLayaway(2181, 213);
+  // console.log(sale);
+  fs.writeFileSync('test.html', email.buildSaleHTML(sale, 229), 'utf-8');
 }
 
-setInterval(async function() {
-  pre();
-  await startCheckTenders();
-  sendEmails();
-  console.log(
-    'Checked: ',
-    new Date().toLocaleTimeString('en-us', options) + ' |',
-    'Email Count:',
-    emailCount
-  );
-  saleEmailQueue = [];
-  newLayawayEmailQueue = [];
-  paymentEmailQueue = [];
-  refundPaymentQueue = [];
-  gnSaleEmailQueue = [];
-  refundEmailQueue = [];
-  notCatQueue = [];
-  closedLayawayQueue = [];
-  sentEmails = [];
-}, the_interval);
+// setInterval(async function() {
+//   pre();
+//   await startCheckTenders();
+//   sendEmails();
+//   console.log(
+//     'Checked: ',
+//     new Date().toLocaleTimeString('en-us', options) + ' |',
+//     'Email Count:',
+//     emailCount
+//   );
+//   saleEmailQueue = [];
+//   newLayawayEmailQueue = [];
+//   paymentEmailQueue = [];
+//   refundPaymentQueue = [];
+//   gnSaleEmailQueue = [];
+//   refundEmailQueue = [];
+//   notCatQueue = [];
+//   closedLayawayQueue = [];
+//   sentEmails = [];
+// }, the_interval);
 
 function checkEmailCount() {
   let newDate = new Date();

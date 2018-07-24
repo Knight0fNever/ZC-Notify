@@ -171,10 +171,7 @@ async function getTransaction(transactionType, transactionNumber, storeId) {
       transactionNumber,
       storeId
     );
-    if (
-      Object.keys(saleResult.TransactionEntries).length != 0 &&
-      saleResult.TransactionEntries.constructor === Object
-    ) {
+    if (Array.isArray(saleResult.TransactionEntries)) {
       saleResult.TotalQty = await getSaleSum(saleResult.TransactionEntries);
       saleResult.TransactionEntries = await getItems(
         saleResult.TransactionEntries
@@ -341,10 +338,10 @@ async function getItems(transactionEntries) {
         );
       }
     }
-    // console.log(transactionEntries);
+    // console.log('Entries with Items', transactionEntries);
     return transactionEntries;
   } else {
-    return [];
+    return transactionEntries;
   }
 }
 
