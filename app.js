@@ -4,7 +4,6 @@ const email = require('./controllers/email');
 const storeConfig = JSON.parse(fs.readFileSync('./storeConfig.json', 'utf8'));
 
 const db = require('./controllers/db');
-const File = require('./controllers/file');
 const Tenders = require('./controllers/tenders');
 
 let date = new Date();
