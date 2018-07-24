@@ -60,6 +60,7 @@ setInterval(async function() {
   pre();
   await startCheckTenders();
   sendEmails();
+  checkEmailCount();
   console.log(
     'Checked: ',
     new Date().toLocaleTimeString('en-us', options) + ' |',
