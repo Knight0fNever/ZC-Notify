@@ -47,7 +47,7 @@ var options = {
   day: 'numeric'
 };
 
-test();
+// test();
 
 async function test() {
   let sale = await db.getTransaction('Sale', 31969, 229);
@@ -56,26 +56,26 @@ async function test() {
   fs.writeFileSync('test.html', email.buildSaleHTML(sale, 229), 'utf-8');
 }
 
-// setInterval(async function() {
-//   pre();
-//   await startCheckTenders();
-//   sendEmails();
-//   console.log(
-//     'Checked: ',
-//     new Date().toLocaleTimeString('en-us', options) + ' |',
-//     'Email Count:',
-//     emailCount
-//   );
-//   saleEmailQueue = [];
-//   newLayawayEmailQueue = [];
-//   paymentEmailQueue = [];
-//   refundPaymentQueue = [];
-//   gnSaleEmailQueue = [];
-//   refundEmailQueue = [];
-//   notCatQueue = [];
-//   closedLayawayQueue = [];
-//   sentEmails = [];
-// }, the_interval);
+setInterval(async function() {
+  pre();
+  await startCheckTenders();
+  sendEmails();
+  console.log(
+    'Checked: ',
+    new Date().toLocaleTimeString('en-us', options) + ' |',
+    'Email Count:',
+    emailCount
+  );
+  saleEmailQueue = [];
+  newLayawayEmailQueue = [];
+  paymentEmailQueue = [];
+  refundPaymentQueue = [];
+  gnSaleEmailQueue = [];
+  refundEmailQueue = [];
+  notCatQueue = [];
+  closedLayawayQueue = [];
+  sentEmails = [];
+}, the_interval);
 
 function checkEmailCount() {
   let newDate = new Date();
