@@ -221,42 +221,45 @@ async function startCheckTenders() {
 
   for (let i = 0; i < newTenders.length; i++) {
     // Sale
-    if (
-      newTenders[i].TransactionNumber != 0 &&
-      newTenders[i].Amount > 2000 &&
-      newTenders[i].OrderHistoryID == 0
-    ) {
-      // SALE
-      createSale(newTenders[i]);
-    } else if (
-      newTenders[i].TransactionNumber != 0 &&
-      newTenders[i].Amount > 0 &&
-      newTenders[i].OrderHistoryID != 0
-    ) {
-      // Closed Layaway
-      createClosedLayaway(newTenders[i]);
-    } else if (
-      newTenders[i].TransactionNumber != 0 &&
-      newTenders[i].Amount < 0
-    ) {
-      // Refund
-      createRefund(newTenders[i]);
-    } else if (
-      newTenders[i].TransactionNumber == 0 &&
-      newTenders[i].Amount < 0
-    ) {
-      // Layaway Payment Refund
-      createPaymentRefund(newTenders[i]);
-      // console.log(layaway);
-    } else if (newTenders[i].TransactionNumber == 0) {
-      //Layaway Payment
-      let orderID = await db.getOrderID(newTenders[i].OrderHistoryID);
-      let layaway = await db.getLayaway(orderID, newTenders[i].StoreID);
-      paymentEmailQueue.push(layaway);
-    } else {
-      let nonCatSale = await createNotCatSale(newTenders[i]);
-      // console.log(nonCatSale);
-      notCatQueue.push(nonCatSale);
+    if (newTenders[i] != undefined) {
+      if (
+        newTenders[i].TransactionNumber != 0 &&
+        newTenders[i].Amount > 2000 &&
+        newTenders[i].OrderHistoryID == 0
+      ) {
+        // SALE
+        createSale(newTenders[i]);
+      } else if (
+        newTenders[i].TransactionNumber != 0 &&
+        newTenders[i].Amount > 0 &&
+        newTenders[i].OrderHistoryID != 0
+      ) {
+        // Closed Layaway
+        createClosedLayaway(newTenders[i]);
+      } else if (
+        newTenders[i].TransactionNumber != 0 &&
+        newTenders[i].Amount < 0
+      ) {
+        // Refund
+        createRefund(newTenders[i]);
+      } else if (
+        newTenders[i].TransactionNumber == 0 &&
+        newTenders[i].Amount < 0
+      ) {
+        // Layaway Payment Refund
+        createPaymentRefund(newTenders[i]);
+        // console.log(layaway);
+      } else if (newTenders[i].TransactionNumber == 0) {
+        //Layaway Payment
+        let orderID = await db.getOrderID(newTenders[i].OrderHistoryID);
+        let layaway = await db.getLayaway(orderID, newTenders[i].StoreID);
+        paymentEmailQueue.push(layaway);
+      } else {
+        if (newTenders[i] != undefined) {
+          let nonCatSale = await createNotCatSale(newTenders[i]);
+          notCatQueue.push(nonCatSale);
+        }
+      }
     }
   }
 }
@@ -265,18 +268,21 @@ async function checkNewTenders(storeID) {
   let newMaxTender = await db.getLatestTender(storeID, 0);
   let oldMaxTender = await db.getLatestTender(storeID, 1);
   let result = {};
-  if (newMaxTender > oldMaxTender) {
-    result = await db.getAllNewTenders(storeID, oldMaxTender);
-    result.forEach(tender => {
-      tender.storeID = storeID;
-    });
-    // console.log(result);
+  if (newMaxTender != undefined && oldMaxTender != undefined) {
+    if (newMaxTender > oldMaxTender) {
+      result = await db.getAllNewTenders(storeID, oldMaxTender);
+      result.forEach(tender => {
+        tender.storeID = storeID;
+      });
+    }
+    return result;
+  } else {
+    end();
   }
-  return result;
 }
 
-function end() {
-  console.log('Ended.');
+function end(error = '') {
+  console.log(error);
 }
 
 async function pre() {
@@ -297,24 +303,48 @@ async function pre() {
     }
   }
   for (let i = 0; i < storeConfig.length; i++) {
+    let error = false;
     let lastOrder = await db.getLastOrder(storeConfig[i].storeID, 1);
     if (lastOrder == undefined) {
-      db.getLatestOrder(storeConfig[i].storeID).then(orderID => {
-        db.insertLatestOrder(orderID, storeConfig[i].storeID).then(() => {
-          // console.log('Inserted');
+      db.getLatestOrder(storeConfig[i].storeID)
+        .then(orderID => {
+          db.insertLatestOrder(orderID, storeConfig[i].storeID)
+            .then(() => {
+              // console.log('Inserted');
+              addedOrders = true;
+            })
+            .catch(err => {
+              console.log(err);
+              error = true;
+            });
+        })
+        .catch(err => {
+          console.log(err);
+          error = true;
         });
-      });
-      addedOrders = true;
     } else if (Array.isArray(lastOrder)) {
       if (lastOrder.length == 0) {
-        db.getLatestOrder(storeConfig[i].storeID).then(orderID => {
-          db.insertLatestOrder(orderID, storeConfig[i].storeID).then(() => {
-            console.log('Inserted');
+        db.getLatestOrder(storeConfig[i].storeID)
+          .then(orderID => {
+            db.insertLatestOrder(orderID, storeConfig[i].storeID)
+              .then(() => {
+                // console.log('Inserted');
+                addedOrders = true;
+              })
+              .catch(err => {
+                console.log(err);
+                error = true;
+              });
+          })
+          .catch(err => {
+            console.log(err);
+            error = true;
           });
-        });
-        addedOrders = true;
       }
     }
+  }
+  if (error) {
+    end('Error in pre() function');
   }
   if (addedOrders || addedSales) {
     end();
@@ -329,7 +359,9 @@ async function createSale(newTender) {
   );
   // console.log(sale);
   // console.log("Sale: ", sale.TransactionNumber);
-  saleEmailQueue.push(sale);
+  if (Object.keys(sale).length != 0 && sale.constructor === Object) {
+    saleEmailQueue.push(sale);
+  }
 }
 
 async function createClosedLayaway(newTender) {
@@ -340,7 +372,9 @@ async function createClosedLayaway(newTender) {
   );
   // console.log(sale);
   // console.log("Sale: ", sale.TransactionNumber);
-  closedLayawayQueue.push(sale);
+  if (Object.keys(sale).length != 0 && sale.constructor === Object) {
+    closedLayawayQueue.push(sale);
+  }
 }
 
 async function createRefund(newTender) {
@@ -350,17 +384,23 @@ async function createRefund(newTender) {
     newTender.StoreID
   );
   // console.log("Refund Total: ", sale.Total);
-  if (sale.Total < 0) {
-    refundEmailQueue.push(sale);
-  } else {
-    notCatQueue.push(sale);
+  if (Object.keys(sale).length != 0 && sale.constructor === Object) {
+    if (sale.Total < 0) {
+      refundEmailQueue.push(sale);
+    } else {
+      notCatQueue.push(sale);
+    }
   }
 }
 
 async function createPaymentRefund(newTender) {
   let orderID = await db.getOrderID(newTender.OrderHistoryID);
-  let layaway = await db.getLayaway(orderID, newTender.StoreID);
-  refundPaymentQueue.push(layaway);
+  if (orderID != 0) {
+    let layaway = await db.getLayaway(orderID, newTender.StoreID);
+    if (Object.keys(layaway).length != 0 && layaway.constructor === Object) {
+      refundPaymentQueue.push(layaway);
+    }
+  }
 }
 
 async function createNotCatSale(newTender) {
@@ -371,7 +411,9 @@ async function createNotCatSale(newTender) {
     newTender.TransactionNumber,
     newTender.StoreID
   );
-  return sale;
+  if (Object.keys(sale).length != 0 && sale.constructor === Object) {
+    return sale;
+  }
 }
 
 async function checkForGNSale() {

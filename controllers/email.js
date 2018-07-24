@@ -198,7 +198,8 @@ function buildItemRows(transactionEntries) {
 
   if (Array.isArray(transactionEntries)) {
     transactionEntries.forEach(entry => {
-      result += `<tr>
+      if (entry.Item != undefined) {
+        result += `<tr>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">${entry.Item.ItemLookupCode}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
@@ -222,9 +223,11 @@ function buildItemRows(transactionEntries) {
                 </tr>
 
       `;
+      }
     });
   } else {
-    result += `<tr>
+    if (entry.Item != undefined) {
+      result += `<tr>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">${entry.Item.ItemLookupCode}</td>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
@@ -248,6 +251,7 @@ function buildItemRows(transactionEntries) {
                 </tr>
 
       `;
+    }
   }
   return result;
 }
@@ -286,7 +290,8 @@ function buildItemRowsLayaway(orderEntries) {
 
   if (Array.isArray(orderEntries)) {
     orderEntries.forEach(entry => {
-      result += `<tr>
+      if (entry.Item != undefined) {
+        result += `<tr>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="middle">${entry.Item.ItemLookupCode}</td>
                   <td colspan="2" style="min-width: 28%; border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
@@ -309,9 +314,11 @@ function buildItemRowsLayaway(orderEntries) {
                 </tr>
       
       `;
+      }
     });
   } else {
-    result += `<tr>
+    if (entry != undefined) {
+      result += `<tr>
                   <td style="border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
                     valign="top">${orderEntries.Item.ItemLookupCode}</td>
                   <td colspan="2" style="min-width: 28%; border-bottom-width: 1px; border-bottom-color: #eee; border-bottom-style: solid; padding: 5px;" align="center"
@@ -333,6 +340,7 @@ function buildItemRowsLayaway(orderEntries) {
                 </tr>
       
       `;
+    }
   }
   return result;
 }

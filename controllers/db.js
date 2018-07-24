@@ -32,7 +32,7 @@ async function getLatestTender(storeId, location) {
     return result.recordset[0].tenderID;
   } catch (err) {
     console.log('Query Error:', err);
-    return 0;
+    return null;
   } finally {
     pool.close();
   }
