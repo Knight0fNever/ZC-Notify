@@ -136,7 +136,7 @@ function sendEmails() {
 
   emailCount += emailQueue.length;
 
-  if (emailCount < 50) {
+  if (emailCount <= 20) {
     emailQueue.forEach(transaction => {
       // console.log(transaction.Type);
       if (transaction.Type == 'Sale') {
