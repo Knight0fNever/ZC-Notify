@@ -38,8 +38,8 @@ async function email(html, typeOfEmail, storeID, transID) {
       pass: emailConfig.password
     },
     direct: true,
-    host: 'smtpout.secureserver.net',
-    port: 465,
+    host: emailConfig.host,
+    port: emailConfig.port,
     secure: true
   });
 
@@ -125,7 +125,7 @@ function buildTenders(tenders) {
                   </td>
                   <td colspan="6" style="padding: 5px 5px 20px;" align="right" valign="top"></td>
                   <td style="padding: 5px 5px 20px;" align="right" valign="middle">
-                    $${tender.Amount.formatMoney(2)}
+                    $${tenders.Amount.formatMoney(2)}
                   </td>
                 </tr>`;
   }
