@@ -4,7 +4,6 @@ const email = require('./controllers/email');
 const storeConfig = JSON.parse(fs.readFileSync('./storeConfig.json', 'utf8'));
 
 const db = require('./controllers/db');
-const File = require('./controllers/file');
 const Tenders = require('./controllers/tenders');
 
 let date = new Date();
@@ -198,7 +197,7 @@ async function startCheckTenders() {
   let newTenders = [];
   for (let i = 0; i < storeConfig.length; i++) {
     let newTender = await checkNewTenders(storeConfig[i].storeID);
-    if (!(Object.keys(newTender).length === 0)) {
+    if (Array.isArray(newTender)) {
       newTender.forEach(tender => {
         newTenders.push(tender);
       });
@@ -270,8 +269,8 @@ async function startCheckTenders() {
 async function checkNewTenders(storeID) {
   let newMaxTender = await db.getLatestTender(storeID, 0);
   let oldMaxTender = await db.getLatestTender(storeID, 1);
-  let result = {};
-  if (newMaxTender != undefined && oldMaxTender != undefined) {
+  let result = [];
+  if (newMaxTender != null && oldMaxTender != null) {
     if (newMaxTender > oldMaxTender) {
       result = await db.getAllNewTenders(storeID, oldMaxTender);
       result.forEach(tender => {
@@ -280,7 +279,7 @@ async function checkNewTenders(storeID) {
     }
     return result;
   } else {
-    end();
+    end('Cannot access both DBs.');
   }
 }
 
@@ -360,8 +359,6 @@ async function createSale(newTender) {
     newTender.TransactionNumber,
     newTender.StoreID
   );
-  // console.log(sale);
-  // console.log("Sale: ", sale.TransactionNumber);
   if (Object.keys(sale).length != 0 && sale.constructor === Object) {
     saleEmailQueue.push(sale);
   }
@@ -373,8 +370,6 @@ async function createClosedLayaway(newTender) {
     newTender.TransactionNumber,
     newTender.StoreID
   );
-  // console.log(sale);
-  // console.log("Sale: ", sale.TransactionNumber);
   if (Object.keys(sale).length != 0 && sale.constructor === Object) {
     closedLayawayQueue.push(sale);
   }
@@ -386,7 +381,6 @@ async function createRefund(newTender) {
     newTender.TransactionNumber,
     newTender.StoreID
   );
-  // console.log("Refund Total: ", sale.Total);
   if (Object.keys(sale).length != 0 && sale.constructor === Object) {
     if (sale.Total < 0) {
       refundEmailQueue.push(sale);
@@ -407,8 +401,6 @@ async function createPaymentRefund(newTender) {
 }
 
 async function createNotCatSale(newTender) {
-  // console.log("Not Catagorized: ", newTender.TransactionNumber);
-
   let sale = await db.getTransaction(
     'Sale',
     newTender.TransactionNumber,
@@ -428,7 +420,6 @@ async function checkForGNSale() {
         containsGN = true;
       }
     }
-    // console.log(containsGN);
     if (containsGN == true) {
       gnSaleEmailQueue.push(notCatQueue[i]);
       sentEmails.push(notCatQueue[i].TransactionNumber);
@@ -440,14 +431,11 @@ async function checkForNewLayaway() {
   for (let i = 0; i < storeConfig.length; i++) {
     let lastChecked = await db.getLastOrder(storeConfig[i].storeID);
     lastChecked = lastChecked[0].lastOrder;
-    // console.log('Last Checked:', lastChecked);
 
     let newLayaways = await db.getLatestOrders(
       lastChecked,
       storeConfig[i].storeID
     );
-
-    // console.log('New Layaways:', newLayaways);
     for (let j = 0; j < newLayaways.length; j++) {
       let newLayaway = await db.getLayaway(
         newLayaways[j].ID,
