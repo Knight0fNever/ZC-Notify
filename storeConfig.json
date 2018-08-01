@@ -2,21 +2,25 @@
   {
     "name": "Hermitage Gallery",
     "storeID": 229,
-    "logo": "https://i.imgur.com/EcxjDjr.jpg"
+    "logo": "https://i.imgur.com/EcxjDjr.jpg",
+    "emails": "joshc@zcollectionsf.com"
   },
   {
     "name": "ZK Gallery",
     "storeID": 213,
-    "logo": "https://i.imgur.com/uuELJVY.jpg"
+    "logo": "https://i.imgur.com/uuELJVY.jpg",
+    "emails": "joshc@zcollectionsf.com"
   },
   {
     "name": "Eden Gallery",
     "storeID": 223,
-    "logo": "https://i.imgur.com/B87eRBX.jpg"
+    "logo": "https://i.imgur.com/B87eRBX.jpg",
+    "emails": "joshc@zcollectionsf.com"
   },
   {
     "name": "Royal Collection",
     "storeID": 1018,
-    "logo": "https://i.imgur.com/wVqw2DK.jpg"
+    "logo": "https://i.imgur.com/wVqw2DK.jpg",
+    "emails": "joshc@zcollectionsf.com"
   }
 ]
