@@ -49,10 +49,11 @@ var options = {
 // test();
 
 async function test() {
-  let sale = await db.getTransaction('Sale', 31969, 229);
+  let sale = await db.getTransaction('Refund', 32028, 229);
   // let payment = await db.getLayaway(2181, 213);
   // console.log(sale);
-  fs.writeFileSync('test.html', email.buildSaleHTML(sale, 229), 'utf-8');
+  // fs.writeFileSync('test.html', email.buildSaleHTML(sale, 229), 'utf-8');
+  email.email(email.buildSaleHTML(sale, 229), 'Refund', 229, 31969);
 }
 
 setInterval(async function() {
@@ -135,6 +136,8 @@ function sendEmails() {
 
   emailCount += emailQueue.length;
 
+  // console.log(emailQueue);
+
   if (emailCount <= 20) {
     emailQueue.forEach(transaction => {
       // console.log(transaction.Type);
@@ -159,28 +162,28 @@ function sendEmails() {
           transaction.StoreID,
           transaction.ID
         );
-      } else if ((transaction.Type = 'Payment')) {
+      } else if (transaction.Type == 'Payment') {
         email.email(
           email.buildPaymentHTML(transaction),
           transaction.Type,
           transaction.StoreID,
           transaction.ID
         );
-      } else if ((transaction.Type = 'Payment Refund')) {
+      } else if (transaction.Type == 'Payment Refund') {
         email.email(
           email.buildPaymentHTML(transaction),
           transaction.Type,
           transaction.StoreID,
           transaction.ID
         );
-      } else if ((transaction.Type = 'Refund')) {
+      } else if (transaction.Type == 'Refund') {
         email.email(
           email.buildSaleHTML(transaction),
           transaction.Type,
-          transaction.StoreID,
-          transaction.ID
+          transaction.storeID,
+          transaction.TransactionNumber
         );
-      } else if ((transaction.Type = 'GN Sale')) {
+      } else if (transaction.Type == 'GN Sale') {
         email.email(
           email.buildSaleHTML(transaction),
           transaction.Type,
@@ -230,26 +233,26 @@ async function startCheckTenders() {
         newTenders[i].OrderHistoryID == 0
       ) {
         // SALE
-        createSale(newTenders[i]);
+        await createSale(newTenders[i]);
       } else if (
         newTenders[i].TransactionNumber != 0 &&
         newTenders[i].Amount > 0 &&
         newTenders[i].OrderHistoryID != 0
       ) {
         // Closed Layaway
-        createClosedLayaway(newTenders[i]);
+        await createClosedLayaway(newTenders[i]);
       } else if (
         newTenders[i].TransactionNumber != 0 &&
         newTenders[i].Amount < 0
       ) {
         // Refund
-        createRefund(newTenders[i]);
+        await createRefund(newTenders[i]);
       } else if (
         newTenders[i].TransactionNumber == 0 &&
         newTenders[i].Amount < 0
       ) {
         // Layaway Payment Refund
-        createPaymentRefund(newTenders[i]);
+        await createPaymentRefund(newTenders[i]);
         // console.log(layaway);
       } else if (newTenders[i].TransactionNumber == 0) {
         //Layaway Payment

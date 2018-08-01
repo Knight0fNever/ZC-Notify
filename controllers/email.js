@@ -43,6 +43,19 @@ async function email(html, typeOfEmail, storeID, transID) {
     secure: true
   });
 
+  // console.log(storeID);
+
+  let currentStoreConfig = storeConfig.find(store => {
+    return store.storeID == storeID;
+  });
+
+  var mailOptions = {
+    from: emailConfig.from,
+    to: currentStoreConfig.emails,
+    subject: '',
+    html: html
+  };
+
   let store = '';
   if (storeID == 229) {
     store = 'Hermitage';
@@ -53,13 +66,6 @@ async function email(html, typeOfEmail, storeID, transID) {
   } else if (storeID == 1018) {
     store = 'Royal';
   }
-
-  var mailOptions = {
-    from: emailConfig.from,
-    to: emailConfig.to,
-    subject: '',
-    html: html
-  };
 
   if (typeOfEmail == 'Sale') {
     mailOptions.subject = `New Sale in ${store} - Transaction #${transID}`;
@@ -697,8 +703,12 @@ function buildPaymentHTML(layaway, storeID) {
     html += buildTenders(currentLayaway.Tenders) + '\n';
   }
 
-  if (currentLayaway.OrderEntries.length > 0) {
-    html += buildItemRowsLayaway(currentLayaway.OrderEntries);
+  if (currentLayaway.OrderEntries != undefined) {
+    if (Array.isArray(currentLayaway.OrderEntries)) {
+      if (currentLayaway.OrderEntries.length > 0) {
+        html += buildItemRowsLayaway(currentLayaway.OrderEntries);
+      }
+    }
   }
 
   html += buildTotalsLayaway(currentLayaway);
