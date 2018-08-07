@@ -49,11 +49,12 @@ var options = {
 // test();
 
 async function test() {
-  let sale = await db.getTransaction('Refund', 32028, 229);
-  // let payment = await db.getLayaway(2181, 213);
+  // let sale = await db.getTransaction('Refund', 32028, 229);
+  let payment = await db.getLayaway(3184, 229);
+  // let order = await db.getLayaway()
   // console.log(sale);
-  // fs.writeFileSync('test.html', email.buildSaleHTML(sale, 229), 'utf-8');
-  email.email(email.buildSaleHTML(sale, 229), 'Refund', 229, 31969);
+  // fs.writeFileSync('payment.json', JSON.stringify(payment), 'utf-8');
+  email.email(email.buildLayawayHTML(payment, 229), 'Payment', 229, 3184);
 }
 
 setInterval(async function() {
