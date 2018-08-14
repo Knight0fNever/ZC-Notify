@@ -49,11 +49,12 @@ var options = {
 // test();
 
 async function test() {
-  let sale = await db.getTransaction('Refund', 32028, 229);
-  // let payment = await db.getLayaway(2181, 213);
+  // let sale = await db.getTransaction('Refund', 32028, 229);
+  let payment = await db.getLayaway(3184, 229);
+  // let order = await db.getLayaway()
   // console.log(sale);
-  // fs.writeFileSync('test.html', email.buildSaleHTML(sale, 229), 'utf-8');
-  email.email(email.buildSaleHTML(sale, 229), 'Refund', 229, 31969);
+  // fs.writeFileSync('payment.json', JSON.stringify(payment), 'utf-8');
+  email.email(email.buildLayawayHTML(payment, 229), 'Payment', 229, 3184);
 }
 
 setInterval(async function() {
@@ -61,12 +62,7 @@ setInterval(async function() {
   await startCheckTenders();
   sendEmails();
   checkEmailCount();
-  console.log(
-    'Checked: ',
-    new Date().toLocaleTimeString('en-us', options) + ' |',
-    'Email Count:',
-    emailCount
-  );
+  console.log('Checked: ', new Date().toLocaleTimeString('en-us', options) + ' |', 'Email Count:', emailCount);
   saleEmailQueue = [];
   newLayawayEmailQueue = [];
   paymentEmailQueue = [];
@@ -156,26 +152,11 @@ function sendEmails() {
           transaction.TransactionNumber
         );
       } else if (transaction.Type == 'Layaway') {
-        email.email(
-          email.buildLayawayHTML(transaction),
-          transaction.Type,
-          transaction.StoreID,
-          transaction.ID
-        );
+        email.email(email.buildLayawayHTML(transaction), transaction.Type, transaction.StoreID, transaction.ID);
       } else if (transaction.Type == 'Payment') {
-        email.email(
-          email.buildPaymentHTML(transaction),
-          transaction.Type,
-          transaction.StoreID,
-          transaction.ID
-        );
+        email.email(email.buildPaymentHTML(transaction), transaction.Type, transaction.StoreID, transaction.ID);
       } else if (transaction.Type == 'Payment Refund') {
-        email.email(
-          email.buildPaymentHTML(transaction),
-          transaction.Type,
-          transaction.StoreID,
-          transaction.ID
-        );
+        email.email(email.buildPaymentHTML(transaction), transaction.Type, transaction.StoreID, transaction.ID);
       } else if (transaction.Type == 'Refund') {
         email.email(
           email.buildSaleHTML(transaction),
@@ -184,12 +165,7 @@ function sendEmails() {
           transaction.TransactionNumber
         );
       } else if (transaction.Type == 'GN Sale') {
-        email.email(
-          email.buildSaleHTML(transaction),
-          transaction.Type,
-          transaction.StoreID,
-          transaction.ID
-        );
+        email.email(email.buildSaleHTML(transaction), transaction.Type, transaction.StoreID, transaction.ID);
       }
     });
   }
@@ -205,17 +181,11 @@ async function startCheckTenders() {
         newTenders.push(tender);
       });
     }
-    await db.updateLatestTender(
-      storeConfig[i].storeID,
-      await db.getLatestTender(storeConfig[i].storeID, 0)
-    );
+    await db.updateLatestTender(storeConfig[i].storeID, await db.getLatestTender(storeConfig[i].storeID, 0));
   }
 
   for (let i = 0; i < newTenders.length; i++) {
-    newTenders[i] = await db.getTenderEntry(
-      newTenders[i].ID,
-      newTenders[i].storeID
-    );
+    newTenders[i] = await db.getTenderEntry(newTenders[i].ID, newTenders[i].storeID);
   }
 
   // console.log(newTenders);
@@ -227,11 +197,7 @@ async function startCheckTenders() {
   for (let i = 0; i < newTenders.length; i++) {
     // Sale
     if (newTenders[i] != undefined) {
-      if (
-        newTenders[i].TransactionNumber != 0 &&
-        newTenders[i].Amount > 2000 &&
-        newTenders[i].OrderHistoryID == 0
-      ) {
+      if (newTenders[i].TransactionNumber != 0 && newTenders[i].Amount >= 1000 && newTenders[i].OrderHistoryID == 0) {
         // SALE
         await createSale(newTenders[i]);
       } else if (
@@ -241,16 +207,10 @@ async function startCheckTenders() {
       ) {
         // Closed Layaway
         await createClosedLayaway(newTenders[i]);
-      } else if (
-        newTenders[i].TransactionNumber != 0 &&
-        newTenders[i].Amount < 0
-      ) {
+      } else if (newTenders[i].TransactionNumber != 0 && newTenders[i].Amount < 0) {
         // Refund
         await createRefund(newTenders[i]);
-      } else if (
-        newTenders[i].TransactionNumber == 0 &&
-        newTenders[i].Amount < 0
-      ) {
+      } else if (newTenders[i].TransactionNumber == 0 && newTenders[i].Amount < 0) {
         // Layaway Payment Refund
         await createPaymentRefund(newTenders[i]);
         // console.log(layaway);
@@ -298,14 +258,10 @@ async function pre() {
     let latestTender = await db.getLatestTender(storeConfig[i].storeID, 1);
     if (latestTender == null) {
       let updatedTender = await db.getLatestTender(storeConfig[i].storeID, 0);
-      await db
-        .insertLatestTender(storeConfig[i].storeID, updatedTender)
-        .then(() => {
-          console.log(
-            'No previous tender entried found in AWS DB. Created them.'
-          );
-          addedSales = true;
-        });
+      await db.insertLatestTender(storeConfig[i].storeID, updatedTender).then(() => {
+        console.log('No previous tender entried found in AWS DB. Created them.');
+        addedSales = true;
+      });
     }
   }
   for (let i = 0; i < storeConfig.length; i++) {
@@ -357,33 +313,21 @@ async function pre() {
 }
 
 async function createSale(newTender) {
-  let sale = await db.getTransaction(
-    'Sale',
-    newTender.TransactionNumber,
-    newTender.StoreID
-  );
+  let sale = await db.getTransaction('Sale', newTender.TransactionNumber, newTender.StoreID);
   if (Object.keys(sale).length != 0 && sale.constructor === Object) {
     saleEmailQueue.push(sale);
   }
 }
 
 async function createClosedLayaway(newTender) {
-  let sale = await db.getTransaction(
-    'Closed Layaway',
-    newTender.TransactionNumber,
-    newTender.StoreID
-  );
+  let sale = await db.getTransaction('Closed Layaway', newTender.TransactionNumber, newTender.StoreID);
   if (Object.keys(sale).length != 0 && sale.constructor === Object) {
     closedLayawayQueue.push(sale);
   }
 }
 
 async function createRefund(newTender) {
-  let sale = await db.getTransaction(
-    'Refund',
-    newTender.TransactionNumber,
-    newTender.StoreID
-  );
+  let sale = await db.getTransaction('Refund', newTender.TransactionNumber, newTender.StoreID);
   if (Object.keys(sale).length != 0 && sale.constructor === Object) {
     if (sale.Total < 0) {
       refundEmailQueue.push(sale);
@@ -404,11 +348,7 @@ async function createPaymentRefund(newTender) {
 }
 
 async function createNotCatSale(newTender) {
-  let sale = await db.getTransaction(
-    'Sale',
-    newTender.TransactionNumber,
-    newTender.StoreID
-  );
+  let sale = await db.getTransaction('Sale', newTender.TransactionNumber, newTender.StoreID);
   if (Object.keys(sale).length != 0 && sale.constructor === Object) {
     return sale;
   }
@@ -435,15 +375,9 @@ async function checkForNewLayaway() {
     let lastChecked = await db.getLastOrder(storeConfig[i].storeID);
     lastChecked = lastChecked[0].lastOrder;
 
-    let newLayaways = await db.getLatestOrders(
-      lastChecked,
-      storeConfig[i].storeID
-    );
+    let newLayaways = await db.getLatestOrders(lastChecked, storeConfig[i].storeID);
     for (let j = 0; j < newLayaways.length; j++) {
-      let newLayaway = await db.getLayaway(
-        newLayaways[j].ID,
-        newLayaways[j].StoreID
-      );
+      let newLayaway = await db.getLayaway(newLayaways[j].ID, newLayaways[j].StoreID);
       newLayawayEmailQueue.push(newLayaway);
       sentEmails.push(newLayaway.ID);
     }

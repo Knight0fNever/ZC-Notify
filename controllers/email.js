@@ -392,6 +392,18 @@ function buildTotalsLayaway(currentLayaway) {
                     2
                   )}</td>
                   <td style="font-weight: bold; padding: 5px;" align="center"; valign="top"></td>
+                </tr>
+                <tr>
+                  <td colspan="4" style="padding: 5px;" align="right" valign="top">
+                    <strong style="margin-top: 5px;">Deposit Total: </strong>
+                  </td>
+                  <!-- Deposits -->
+                  <td></td>
+                  <td style="font-weight: bold; padding: 5px;" align="center" valign="top">
+                    $${currentLayaway.Deposit.formatMoney(2)}
+                  </td>
+                  <td></td>
+                  
                 </tr>`;
 
   return result;
